@@ -23,7 +23,7 @@ const providersJsonSchema = z
       if (providerIds.has(provider.id)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `存在重复的 provider id：${provider.id}`,
+          message: `存在重复的服务商 id：${provider.id}`,
         })
       }
       providerIds.add(provider.id)
@@ -59,22 +59,22 @@ function buildProvidersDraft(providers: unknown): string {
 
   if (content === '[]') {
     return `[
-  // 每个元素都是一个 Provider 配置对象
+  // 每个元素都是一个服务商配置对象
   // type: 服务商类型，例如 "openai"、"anthropic"、"gemini"
-  // id: Provider 的唯一标识，chatModels 会通过 providerId 引用它
+  // id: 服务商的唯一标识，chatModels 会通过 providerId 引用它
   // apiKey: 对应平台的密钥
   // baseUrl: 自定义接口地址，可选
-  // additionalSettings: 某些 Provider 的额外参数，可选
+  // additionalSettings: 某些服务商的额外参数，可选
 ]`
   }
 
   return `[
-  // 每个元素都是一个 Provider 配置对象
+  // 每个元素都是一个服务商配置对象
   // type: 服务商类型，例如 "openai"、"anthropic"、"gemini"
-  // id: Provider 的唯一标识，chatModels 会通过 providerId 引用它
+  // id: 服务商的唯一标识，chatModels 会通过 providerId 引用它
   // apiKey: 对应平台的密钥
   // baseUrl: 自定义接口地址，可选
-  // additionalSettings: 某些 Provider 的额外参数，可选
+  // additionalSettings: 某些服务商的额外参数，可选
   ${content.slice(2, -2)}
 ]`
 }
@@ -101,7 +101,7 @@ export function ProvidersSection(_props: ProvidersSectionProps) {
 
       if (missingChatProviders.length > 0) {
         throw new Error(
-          `以下聊天/执行模型引用了不存在的 Provider：\n${missingChatProviders.join('\n')}`,
+          `以下聊天/执行模型引用了不存在的服务商：\n${missingChatProviders.join('\n')}`,
         )
       }
 
@@ -110,8 +110,8 @@ export function ProvidersSection(_props: ProvidersSectionProps) {
         providers,
       })
       setDraft(buildProvidersDraft(providers))
-      setValidationMessage('Provider JSON 已保存。')
-      new Notice('Provider JSON 已保存')
+      setValidationMessage('服务商 JSON 已保存。')
+      new Notice('服务商 JSON 已保存')
     } catch (error) {
       setValidationMessage(formatJsonError(error))
     }
@@ -124,10 +124,10 @@ export function ProvidersSection(_props: ProvidersSectionProps) {
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">Provider 配置</div>
+      <div className="smtcmp-settings-header">服务商配置</div>
 
       <div className="smtcmp-settings-desc">
-        在这里手动编辑 Provider 配置 JSON。
+        在这里手动编辑服务商配置 JSON。
         <br />
         支持使用 <code>// 中文注释</code>，保存后会写入插件的{' '}
         <code>data.json</code>。

@@ -162,7 +162,7 @@ export function ModelsSection({ app, plugin }: ModelsSectionProps) {
 
     if (missingProviders.length > 0) {
       throw new Error(
-        `以下${label}引用了不存在的 Provider：\n${missingProviders.join('\n')}`,
+        `以下${label}引用了不存在的服务商：\n${missingProviders.join('\n')}`,
       )
     }
   }

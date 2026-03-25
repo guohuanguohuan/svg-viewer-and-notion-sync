@@ -52,7 +52,7 @@ function AddChatModelModalComponent({
         (provider) => provider.id === formData.providerId,
       )
     ) {
-      new Notice('对应的 Provider ID 不存在')
+      new Notice('对应的服务商 ID 不存在')
       return
     }
 
@@ -87,8 +87,8 @@ function AddChatModelModalComponent({
       </ObsidianSetting>
 
       <ObsidianSetting
-        name="Provider ID"
-        desc="选择这个模型对应的 Provider。"
+        name="服务商 ID"
+        desc="选择这个模型对应的服务商。"
         required
       >
         <ObsidianDropdown
@@ -104,7 +104,7 @@ function AddChatModelModalComponent({
               (p) => p.id === value,
             )
             if (!provider) {
-              new Notice(`未找到 Provider：${value}`)
+              new Notice(`未找到服务商：${value}`)
               return
             }
             setFormData(

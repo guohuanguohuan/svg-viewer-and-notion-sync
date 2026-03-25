@@ -28,7 +28,7 @@ export class AddProviderModal extends ReactModal<ProviderFormComponentProps> {
       Component: ProviderFormComponent,
       props: { plugin, provider: null },
       options: {
-        title: '添加自定义 Provider',
+        title: '添加自定义服务商',
       },
     })
   }
@@ -41,7 +41,7 @@ export class EditProviderModal extends ReactModal<ProviderFormComponentProps> {
       Component: ProviderFormComponent,
       props: { plugin, provider },
       options: {
-        title: `编辑 Provider：${provider.id}`,
+        title: `编辑服务商：${provider.id}`,
       },
     })
   }
@@ -71,7 +71,7 @@ function ProviderFormComponent({
       )
 
       if (currentProviderIndex === -1) {
-        new Notice('没有找到这个 Provider ID')
+        new Notice('没有找到这个服务商 ID')
         return
       }
 
@@ -95,7 +95,7 @@ function ProviderFormComponent({
       if (
         plugin.settings.providers.some((p: LLMProvider) => p.id === formData.id)
       ) {
-        new Notice('这个 Provider ID 已存在，请换一个。')
+        new Notice('这个服务商 ID 已存在，请换一个。')
         return
       }
 
@@ -124,7 +124,7 @@ function ProviderFormComponent({
         <>
           <ObsidianSetting
             name="ID"
-            desc="用于在设置中标识这个 Provider，仅供你自己引用。"
+            desc="用于在设置中标识这个服务商，仅供你自己引用。"
             required
           >
             <ObsidianTextInput
@@ -136,7 +136,7 @@ function ProviderFormComponent({
             />
           </ObsidianSetting>
 
-          <ObsidianSetting name="Provider 类型" required>
+          <ObsidianSetting name="服务商类型" required>
             <ObsidianDropdown
               value={formData.type}
               options={Object.fromEntries(
