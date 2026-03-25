@@ -499,6 +499,14 @@ Commit changes and push them to the GitHub repository remote.
 - This rule applies even if the Git root moves above `AutoFlow Agent/`, back into `AutoFlow Agent/`, or to any other valid repository boundary.
 - If the upload is blocked by authentication, network failure, or missing remote configuration, report the failure explicitly instead of silently skipping the upload.
 
+### Mandatory file-by-file edit requirement
+
+- No matter what task is being executed, file changes must be handled one file at a time.
+- Do not batch-edit multiple files in a single edit action.
+- The required workflow is: inspect one target file, modify that one file only, verify that file, then move to the next file.
+- If a task eventually affects many files, still process them sequentially as independent file-by-file steps rather than one large multi-file rewrite.
+- This rule applies to README updates, code changes, config changes, docs changes, refactors, bug fixes, and cleanup work.
+
 ### Mandatory Obsidian sync requirement
 
 - Every code run must also end with copying the plugin runtime files into the active Obsidian plugin directory before the GitHub upload attempt.
