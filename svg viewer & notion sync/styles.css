@@ -1,0 +1,46 @@
+.svg-code-renderer {
+  width: 100%;
+  max-width: 100%;
+  padding: var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background-color: var(--background-primary);
+  background-image:
+    linear-gradient(45deg, var(--background-secondary) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--background-secondary) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--background-secondary) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--background-secondary) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.svg-code-renderer__svg {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.svg-code-renderer__error {
+  padding: var(--size-4-2);
+  border: 1px solid var(--text-error);
+  border-radius: var(--radius-m);
+  color: var(--text-error);
+  background: var(--background-primary);
+}
+
+.svg-code-renderer__source {
+  margin-top: var(--size-4-2);
+}
+
+.svg-code-renderer__source pre {
+  margin: 0;
+  padding: var(--size-4-2);
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+  overflow-x: auto;
+}
