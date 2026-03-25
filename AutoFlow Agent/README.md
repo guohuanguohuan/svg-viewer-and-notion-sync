@@ -499,6 +499,14 @@ Commit changes and push them to the GitHub repository remote.
 - This rule applies even if the Git root moves above `AutoFlow Agent/`, back into `AutoFlow Agent/`, or to any other valid repository boundary.
 - If the upload is blocked by authentication, network failure, or missing remote configuration, report the failure explicitly instead of silently skipping the upload.
 
+### Mandatory Obsidian sync requirement
+
+- Every code run must also end with copying the plugin runtime files into the active Obsidian plugin directory before the GitHub upload attempt.
+- The current target plugin directory is `C:\sync\.obsidian\plugins\autoflow-agent`.
+- The minimum files that must be copied are `AutoFlow Agent/main.js`, `AutoFlow Agent/manifest.json`, and `AutoFlow Agent/styles.css`.
+- If future workflow changes produce additional runtime files required by Obsidian, copy those as part of the same end-of-run sync step.
+- If the Obsidian plugin directory is missing, not writable, or cannot be reached, report that failure explicitly instead of silently skipping the copy step.
+
 ### Runtime defaults
 
 - Preferred tool: `git`
@@ -527,12 +535,14 @@ Commit changes and push them to the GitHub repository remote.
    - Use the provided `remote_url`, or
    - Fall back to `https://github.com/guohuanguohuan/obsidian-plugin.git`, or
    - Stop and ask for a repository URL if neither is available.
-11. After every code run completes, stage all changes with `git add -A`.
-12. Check whether the staging area contains changes.
-13. Create a commit only if staged changes exist.
-14. If no new changes exist, skip the commit but still allow pushing existing history.
-15. Push the target branch to `origin` and set the upstream.
-16. Report whether the repository was initialized, which branch was used, whether a commit was created, and whether the push succeeded.
+11. After every code run completes, copy `main.js`, `manifest.json`, and `styles.css` from `AutoFlow Agent/` into `C:\sync\.obsidian\plugins\autoflow-agent`.
+12. Verify that the copied files in the Obsidian plugin directory match the source files.
+13. After the Obsidian sync step completes, stage all changes with `git add -A`.
+14. Check whether the staging area contains changes.
+15. Create a commit only if staged changes exist.
+16. If no new changes exist, skip the commit but still allow pushing existing history.
+17. Push the target branch to `origin` and set the upstream.
+18. Report whether the repository was initialized, whether the Obsidian sync succeeded, which branch was used, whether a commit was created, and whether the push succeeded.
 
 ### Suggested commands
 
@@ -542,6 +552,9 @@ git rev-parse --is-inside-work-tree
 git symbolic-ref --quiet --short HEAD
 git remote
 git remote get-url origin
+Copy-Item "AutoFlow Agent\\main.js" "C:\\sync\\.obsidian\\plugins\\autoflow-agent\\main.js" -Force
+Copy-Item "AutoFlow Agent\\manifest.json" "C:\\sync\\.obsidian\\plugins\\autoflow-agent\\manifest.json" -Force
+Copy-Item "AutoFlow Agent\\styles.css" "C:\\sync\\.obsidian\\plugins\\autoflow-agent\\styles.css" -Force
 git add -A
 git diff --cached --quiet
 git commit -m "<commit_message>"
