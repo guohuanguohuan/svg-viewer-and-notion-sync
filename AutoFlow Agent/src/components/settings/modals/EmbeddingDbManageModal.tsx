@@ -41,8 +41,10 @@ function EmbeddingDbManageModalComponent() {
       <div className="smtcmp-settings-desc">
         The intended flow is:
         <br />
-        `Obsidian search -> filter hits -> read relevant paragraphs or heading
-        blocks -> send snippets with sources to the model`
+        <code>
+          Obsidian search -&gt; filter hits -&gt; read relevant paragraphs or
+          heading blocks -&gt; send snippets with sources to the model
+        </code>
       </div>
     </div>
   )

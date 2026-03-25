@@ -1,74 +1,61 @@
-import { App } from 'obsidian'
+import { App, TFile } from 'obsidian'
+import { minimatch } from 'minimatch'
 
 import { QueryProgressState } from '../../components/chat-view/QueryProgress'
-import { VectorManager } from '../../database/modules/vector/VectorManager'
-import { SelectEmbedding } from '../../database/schema'
 import { SmartComposerSettings } from '../../settings/schema/setting.types'
-import { EmbeddingModelClient } from '../../types/embedding'
+import { VaultSearchResult } from '../../types/rag'
+import { readTFileContent } from '../../utils/obsidian'
 
-import { getEmbeddingModelClient } from './embedding'
+import { extractSearchTerms, scoreTextAgainstTerms } from './search-utils'
 
-// TODO: do we really need this class? It seems like unnecessary abstraction.
+type QueryScope = {
+  files: string[]
+  folders: string[]
+}
+
+type FileSnippet = {
+  content: string
+  startLine: number
+  endLine: number
+}
+
 export class RAGEngine {
   private app: App
   private settings: SmartComposerSettings
-  private vectorManager: VectorManager | null = null
-  private embeddingModel: EmbeddingModelClient | null = null
 
-  constructor(
-    app: App,
-    settings: SmartComposerSettings,
-    vectorManager: VectorManager,
-  ) {
+  constructor(app: App, settings: SmartComposerSettings) {
     this.app = app
     this.settings = settings
-    this.vectorManager = vectorManager
-    this.embeddingModel = getEmbeddingModelClient({
-      settings,
-      embeddingModelId: settings.embeddingModelId,
-    })
   }
 
   cleanup() {
-    this.embeddingModel = null
-    this.vectorManager = null
+    // Search-based RAG does not keep persistent engine state.
   }
 
-  // TODO: use addSettingsChangeListener
   setSettings(settings: SmartComposerSettings) {
     this.settings = settings
-    this.embeddingModel = getEmbeddingModelClient({
-      settings,
-      embeddingModelId: settings.embeddingModelId,
-    })
   }
 
-  // TODO: Implement automatic vault re-indexing when settings are changed.
-  // Currently, users must manually re-index the vault.
   async updateVaultIndex(
-    options: { reindexAll: boolean } = {
+    _options: { reindexAll: boolean } = {
       reindexAll: false,
     },
     onQueryProgressChange?: (queryProgress: QueryProgressState) => void,
   ): Promise<void> {
-    if (!this.embeddingModel) {
-      throw new Error('Embedding model is not set')
-    }
-    await this.vectorManager?.updateVaultIndex(
-      this.embeddingModel,
-      {
-        chunkSize: this.settings.ragOptions.chunkSize,
-        excludePatterns: this.settings.ragOptions.excludePatterns,
-        includePatterns: this.settings.ragOptions.includePatterns,
-        reindexAll: options.reindexAll,
+    const totalFiles = this.getCandidateFiles().length
+
+    onQueryProgressChange?.({
+      type: 'indexing',
+      indexProgress: {
+        completedChunks: totalFiles,
+        totalChunks: totalFiles,
+        totalFiles,
       },
-      (indexProgress) => {
-        onQueryProgressChange?.({
-          type: 'indexing',
-          indexProgress,
-        })
-      },
-    )
+    })
+
+    onQueryProgressChange?.({
+      type: 'idle',
+    })
   }
 
   async processQuery({
@@ -77,58 +64,168 @@ export class RAGEngine {
     onQueryProgressChange,
   }: {
     query: string
-    scope?: {
-      files: string[]
-      folders: string[]
-    }
+    scope?: QueryScope
     onQueryProgressChange?: (queryProgress: QueryProgressState) => void
-  }): Promise<
-    (Omit<SelectEmbedding, 'embedding'> & {
-      similarity: number
-    })[]
-  > {
-    if (!this.embeddingModel) {
-      throw new Error('Embedding model is not set')
+  }): Promise<VaultSearchResult[]> {
+    const terms = extractSearchTerms(query)
+
+    if (terms.length === 0) {
+      onQueryProgressChange?.({
+        type: 'querying-done',
+        queryResult: [],
+      })
+      return []
     }
-    await this.vectorManager?.updateVaultIndexIfNeeded(
-      this.embeddingModel,
-      {
-        chunkSize: this.settings.ragOptions.chunkSize,
-        excludePatterns: this.settings.ragOptions.excludePatterns,
-        includePatterns: this.settings.ragOptions.includePatterns,
-      },
-      (indexProgress) => {
-        onQueryProgressChange?.({
-          type: 'indexing',
-          indexProgress,
-        })
-      },
-    )
-    const queryEmbedding = await this.getQueryEmbedding(query)
+
     onQueryProgressChange?.({
       type: 'querying',
     })
-    const queryResult =
-      (await this.vectorManager?.performSimilaritySearch(
-        queryEmbedding,
-        this.embeddingModel,
-        {
-          minSimilarity: this.settings.ragOptions.minSimilarity,
-          limit: this.settings.ragOptions.limit,
-          scope,
+
+    const files = this.getCandidateFiles(scope)
+    const results: VaultSearchResult[] = []
+
+    for (const file of files) {
+      const content = await readTFileContent(file, this.app.vault)
+      const { matchedTerms, matchCount } = scoreTextAgainstTerms(content, terms)
+
+      if (matchedTerms === 0 || matchCount === 0) {
+        continue
+      }
+
+      const snippet = this.extractBestSnippet(content, terms)
+
+      results.push({
+        id: `${file.path}:${snippet.startLine}:${snippet.endLine}`,
+        path: file.path,
+        content: snippet.content,
+        metadata: {
+          startLine: snippet.startLine,
+          endLine: snippet.endLine,
         },
-      )) ?? []
+        score: matchedTerms * 100 + matchCount,
+        matchCount,
+      })
+    }
+
+    const limitedResults = results
+      .sort((a, b) => {
+        if (b.score !== a.score) {
+          return b.score - a.score
+        }
+
+        if (b.matchCount !== a.matchCount) {
+          return b.matchCount - a.matchCount
+        }
+
+        return a.path.localeCompare(b.path)
+      })
+      .slice(0, this.settings.ragOptions.limit)
+
     onQueryProgressChange?.({
       type: 'querying-done',
-      queryResult,
+      queryResult: limitedResults,
     })
-    return queryResult
+
+    return limitedResults
   }
 
-  private async getQueryEmbedding(query: string): Promise<number[]> {
-    if (!this.embeddingModel) {
-      throw new Error('Embedding model is not set')
+  private getCandidateFiles(scope?: QueryScope): TFile[] {
+    const allFiles = this.app.vault.getMarkdownFiles()
+
+    return allFiles.filter((file) => {
+      if (!this.matchesScope(file, scope)) {
+        return false
+      }
+
+      if (
+        this.settings.ragOptions.excludePatterns.some((pattern) =>
+          minimatch(file.path, pattern),
+        )
+      ) {
+        return false
+      }
+
+      if (this.settings.ragOptions.includePatterns.length === 0) {
+        return true
+      }
+
+      return this.settings.ragOptions.includePatterns.some((pattern) =>
+        minimatch(file.path, pattern),
+      )
+    })
+  }
+
+  private matchesScope(file: TFile, scope?: QueryScope): boolean {
+    if (!scope) {
+      return true
     }
-    return this.embeddingModel.getEmbedding(query)
+
+    const matchesFile = scope.files.includes(file.path)
+    const matchesFolder = scope.folders.some(
+      (folderPath) =>
+        file.path === folderPath || file.path.startsWith(`${folderPath}/`),
+    )
+
+    if (scope.files.length === 0 && scope.folders.length === 0) {
+      return true
+    }
+
+    return matchesFile || matchesFolder
+  }
+
+  private extractBestSnippet(content: string, terms: string[]): FileSnippet {
+    const lines = content.split('\n')
+
+    if (lines.length === 0) {
+      return {
+        content: '',
+        startLine: 1,
+        endLine: 1,
+      }
+    }
+
+    const approxMaxChars = Math.max(400, this.settings.ragOptions.chunkSize)
+    let bestStart = 0
+    let bestEnd = 0
+    let bestScore = -1
+
+    for (let index = 0; index < lines.length; index += 1) {
+      const start = Math.max(0, index - 2)
+      let end = index
+      let collected = ''
+
+      while (end < lines.length) {
+        const next = collected
+          ? `${collected}\n${lines[end]}`
+          : lines[end]
+
+        if (next.length > approxMaxChars && end > index) {
+          break
+        }
+
+        collected = next
+        end += 1
+      }
+
+      const { matchedTerms, matchCount } = scoreTextAgainstTerms(
+        collected,
+        terms,
+      )
+      const score = matchedTerms * 100 + matchCount
+
+      if (score > bestScore) {
+        bestScore = score
+        bestStart = start
+        bestEnd = Math.max(start + 1, end)
+      }
+    }
+
+    const snippetContent = lines.slice(bestStart, bestEnd).join('\n').trim()
+
+    return {
+      content: snippetContent,
+      startLine: bestStart + 1,
+      endLine: bestEnd,
+    }
   }
 }

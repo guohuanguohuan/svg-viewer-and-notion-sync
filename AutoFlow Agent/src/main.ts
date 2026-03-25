@@ -16,11 +16,12 @@ import {
 } from './settings/schema/setting.types'
 import { parseSmartComposerSettings } from './settings/schema/settings'
 import { SmartComposerSettingTab } from './settings/SettingTab'
-import {
-  ensureLocalEmbeddingService,
-  shouldAutoStartLocalEmbeddingService,
-} from './tools/localEmbeddingAutostart'
 import { getMentionableBlockData } from './utils/obsidian'
+
+const shouldAutoStartLocalEmbeddingService = (
+  _settings?: SmartComposerSettings,
+) => false
+const ensureLocalEmbeddingService = async (_manifestDir?: string) => false
 
 export default class SmartComposerPlugin extends Plugin {
   settings: SmartComposerSettings
@@ -284,12 +285,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     if (!this.ragEngineInitPromise) {
       this.ragEngineInitPromise = (async () => {
         try {
-          const dbManager = await this.getDbManager()
-          this.ragEngine = new RAGEngine(
-            this.app,
-            this.settings,
-            dbManager.getVectorManager(),
-          )
+          this.ragEngine = new RAGEngine(this.app, this.settings)
           return this.ragEngine
         } catch (error) {
           this.ragEngineInitPromise = null
@@ -328,8 +324,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
 
   private async migrateToJsonStorage() {
     try {
-      const dbManager = await this.getDbManager()
-      await migrateToJsonDatabase(this.app, dbManager, async () => {
+      await migrateToJsonDatabase(this.app, () => this.getDbManager(), async () => {
         await this.reloadChatView()
         console.log('Migration to JSON storage completed successfully')
       })
