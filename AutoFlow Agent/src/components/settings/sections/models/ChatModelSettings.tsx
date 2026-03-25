@@ -20,13 +20,13 @@ export class ChatModelSettingsModal extends ReactModal<SettingsComponentProps> {
   constructor(model: ChatModel, app: App, plugin: SmartComposerPlugin) {
     const modelSettings = getModelSettings(model)
     super({
-      app: app,
+      app,
       Component: modelSettings
         ? modelSettings.SettingsComponent
-        : () => <div>No settings available for this model</div>,
+        : () => <div>这个模型没有额外设置项。</div>,
       props: { model, plugin },
       options: {
-        title: `Edit Chat Model: ${model.id}`,
+        title: `编辑聊天模型：${model.id}`,
       },
     })
   }
@@ -37,16 +37,7 @@ type ModelSettingsRegistry = {
   SettingsComponent: React.FC<SettingsComponentProps>
 }
 
-/**
- * Registry of available model settings.
- *
- * The check function is used to determine if the model settings should be displayed.
- * The SettingsComponent is the component that will be displayed when the model settings are opened.
- */
 const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
-  /**
-   * OpenAI model settings
-   */
   {
     check: (model) => model.providerType === 'openai',
 
@@ -62,7 +53,7 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
 
       const handleSubmit = async () => {
         if (!['low', 'medium', 'high'].includes(reasoningEffort)) {
-          new Notice('Reasoning effort must be one of "low", "medium", "high"')
+          new Notice('推理强度只能是 "low"、"medium" 或 "high"。')
           return
         }
 
@@ -94,8 +85,8 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
       return (
         <>
           <ObsidianSetting
-            name="Reasoning"
-            desc="Enable reasoning for the model. Available for o-series models (e.g., o3, o4-mini) and GPT-5 models."
+            name="推理"
+            desc='为模型启用推理。适用于 o 系列模型（如 o3、o4-mini）和 GPT-5 系列。'
           >
             <ObsidianToggle
               value={reasoningEnabled}
@@ -104,8 +95,8 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           </ObsidianSetting>
           {reasoningEnabled && (
             <ObsidianSetting
-              name="Reasoning Effort"
-              desc={`Controls how much thinking the model does before responding. Default is "medium".`}
+              name="推理强度"
+              desc='控制模型在回答前的思考量，默认是 "medium"。'
               className="smtcmp-setting-item--nested"
               required
             >
@@ -122,17 +113,13 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           )}
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
-            <ObsidianButton text="Cancel" onClick={onClose} />
+            <ObsidianButton text="保存" onClick={handleSubmit} cta />
+            <ObsidianButton text="取消" onClick={onClose} />
           </ObsidianSetting>
         </>
       )
     },
   },
-
-  /**
-   * OpenAI Codex model settings
-   */
   {
     check: (model) => model.providerType === 'openai-plan',
 
@@ -180,13 +167,13 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
       return (
         <>
           <ObsidianSetting
-            name="Reasoning Effort"
-            desc="Controls how much thinking the model does before responding."
+            name="推理强度"
+            desc="控制模型在回答前的思考量。"
           >
             <ObsidianDropdown
               value={reasoningEffort}
               options={{
-                '': 'Not set (OpenAI default)',
+                '': '未设置（使用 OpenAI 默认值）',
                 none: 'none',
                 minimal: 'minimal',
                 low: 'low',
@@ -198,13 +185,13 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
             />
           </ObsidianSetting>
           <ObsidianSetting
-            name="Reasoning Summary"
-            desc="Optional summary of reasoning."
+            name="推理摘要"
+            desc="可选的推理摘要输出方式。"
           >
             <ObsidianDropdown
               value={reasoningSummary}
               options={{
-                '': 'Not set (OpenAI default)',
+                '': '未设置（使用 OpenAI 默认值）',
                 auto: 'auto',
                 concise: 'concise',
                 detailed: 'detailed',
@@ -214,20 +201,13 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           </ObsidianSetting>
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
-            <ObsidianButton text="Cancel" onClick={onClose} />
+            <ObsidianButton text="保存" onClick={handleSubmit} cta />
+            <ObsidianButton text="取消" onClick={onClose} />
           </ObsidianSetting>
         </>
       )
     },
   },
-
-  /**
-   * Claude model settings
-   *
-   * For extended thinking, see:
-   * @see https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking
-   */
   {
     check: (model) =>
       model.providerType === 'anthropic' ||
@@ -249,12 +229,12 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
       const handleSubmit = async () => {
         const parsedTokens = parseInt(budgetTokens, 10)
         if (isNaN(parsedTokens)) {
-          new Notice('Please enter a valid number')
+          new Notice('请输入有效数字')
           return
         }
 
         if (parsedTokens < 1024) {
-          new Notice('Budget tokens must be at least 1024')
+          new Notice('预算 tokens 不能小于 1024')
           return
         }
 
@@ -286,8 +266,8 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
       return (
         <>
           <ObsidianSetting
-            name="Extended Thinking"
-            desc="Enable extended thinking for Claude. Available for Claude Sonnet 3.7+ and Claude Opus 4.0+."
+            name="扩展思考"
+            desc="为 Claude 启用扩展思考。适用于 Claude Sonnet 3.7+ 和 Claude Opus 4.0+。"
           >
             <ObsidianToggle
               value={thinkingEnabled}
@@ -296,14 +276,14 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           </ObsidianSetting>
           {thinkingEnabled && (
             <ObsidianSetting
-              name="Budget Tokens"
-              desc="The maximum number of tokens that Claude can use for thinking. Must be at least 1024."
+              name="预算 tokens"
+              desc="Claude 可用于思考的最大 token 数，最少为 1024。"
               className="smtcmp-setting-item--nested"
               required
             >
               <ObsidianTextInput
                 value={budgetTokens}
-                placeholder="Number of tokens"
+                placeholder="输入 token 数量"
                 onChange={(value: string) => setBudgetTokens(value)}
                 type="number"
               />
@@ -311,20 +291,13 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           )}
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
-            <ObsidianButton text="Cancel" onClick={onClose} />
+            <ObsidianButton text="保存" onClick={handleSubmit} cta />
+            <ObsidianButton text="取消" onClick={onClose} />
           </ObsidianSetting>
         </>
       )
     },
   },
-
-  /**
-   * Gemini model settings
-   *
-   * For thinking, see:
-   * @see https://ai.google.dev/gemini-api/docs/thinking
-   */
   {
     check: (model) =>
       model.providerType === 'gemini' || model.providerType === 'gemini-plan',
@@ -354,7 +327,7 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
         if (controlMode === 'budget') {
           parsedBudget = parseInt(thinkingBudget, 10)
           if (isNaN(parsedBudget)) {
-            new Notice('Please enter a valid number for thinking budget')
+            new Notice('请输入有效的 thinking budget 数值')
             return
           }
         }
@@ -394,8 +367,8 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
       return (
         <>
           <ObsidianSetting
-            name="Thinking Settings"
-            desc="Customize thinking level or budget. When disabled, the model follows its default behavior (dynamic thinking for most Gemini 2.5 and 3 models)."
+            name="思考设置"
+            desc="自定义思考级别或预算。关闭后，模型将使用默认行为（大多数 Gemini 2.5 / 3 模型会采用动态思考）。"
           >
             <ObsidianToggle
               value={thinkingEnabled}
@@ -405,15 +378,15 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           {thinkingEnabled && (
             <>
               <ObsidianSetting
-                name="Control Mode"
-                desc="Use 'Level' for Gemini 3 models, 'Budget' for Gemini 2.5 models."
+                name="控制模式"
+                desc='Gemini 3 模型一般使用 "Level"，Gemini 2.5 模型一般使用 "Budget"。'
                 className="smtcmp-setting-item--nested"
               >
                 <ObsidianDropdown
                   value={controlMode}
                   options={{
-                    level: 'Level (Gemini 3)',
-                    budget: 'Budget (Gemini 2.5)',
+                    level: 'Level（Gemini 3）',
+                    budget: 'Budget（Gemini 2.5）',
                   }}
                   onChange={(value: string) =>
                     setControlMode(value as 'level' | 'budget')
@@ -422,8 +395,8 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
               </ObsidianSetting>
               {controlMode === 'level' && (
                 <ObsidianSetting
-                  name="Thinking Level"
-                  desc="Controls reasoning depth. 'high' is default for Gemini 3."
+                  name="思考级别"
+                  desc='控制推理深度，Gemini 3 默认通常是 "high"。'
                   className="smtcmp-setting-item--nested"
                 >
                   <ObsidianDropdown
@@ -440,21 +413,21 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
               )}
               {controlMode === 'budget' && (
                 <ObsidianSetting
-                  name="Thinking Budget"
-                  desc="Token budget for thinking. Use -1 for dynamic, 0 to disable."
+                  name="思考预算"
+                  desc="用于思考的 token 预算。-1 表示动态，0 表示关闭。"
                   className="smtcmp-setting-item--nested"
                 >
                   <ObsidianTextInput
                     value={thinkingBudget}
-                    placeholder="-1 for dynamic"
+                    placeholder="-1 表示动态"
                     onChange={(value: string) => setThinkingBudget(value)}
                     type="number"
                   />
                 </ObsidianSetting>
               )}
               <ObsidianSetting
-                name="Include Thought Summaries"
-                desc="Shows a summary of the model's reasoning process. Enabling this can increase token usage."
+                name="包含思考摘要"
+                desc="显示模型推理过程的摘要。启用后可能会增加 token 消耗。"
                 className="smtcmp-setting-item--nested"
               >
                 <ObsidianToggle
@@ -466,15 +439,13 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           )}
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
-            <ObsidianButton text="Cancel" onClick={onClose} />
+            <ObsidianButton text="保存" onClick={handleSubmit} cta />
+            <ObsidianButton text="取消" onClick={onClose} />
           </ObsidianSetting>
         </>
       )
     },
   },
-
-  // Perplexity settings
   {
     check: (model) =>
       model.providerType === 'perplexity' &&
@@ -495,9 +466,7 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
 
       const handleSubmit = async () => {
         if (!['low', 'medium', 'high'].includes(searchContextSize)) {
-          new Notice(
-            'Search context size must be one of "low", "medium", "high"',
-          )
+          new Notice('搜索上下文大小只能是 "low"、"medium" 或 "high"。')
           return
         }
 
@@ -520,8 +489,8 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
       return (
         <>
           <ObsidianSetting
-            name="Search Context Size"
-            desc={`Determines how much search context is retrieved for the model. Choose "low" for minimal context and lower costs, "medium" for a balanced approach, or "high" for maximum context at higher cost. Default is "low".`}
+            name="搜索上下文大小"
+            desc='控制为模型检索多少搜索上下文。"low" 成本更低，"medium" 更均衡，"high" 上下文最多但成本更高。默认是 "low"。'
           >
             <ObsidianDropdown
               value={searchContextSize}
@@ -535,8 +504,8 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           </ObsidianSetting>
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
-            <ObsidianButton text="Cancel" onClick={onClose} />
+            <ObsidianButton text="保存" onClick={handleSubmit} cta />
+            <ObsidianButton text="取消" onClick={onClose} />
           </ObsidianSetting>
         </>
       )

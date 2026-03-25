@@ -38,11 +38,11 @@ export function McpSection({ app, plugin }: McpSectionProps) {
 
   useEffect(() => {
     const initMCPManager = async () => {
-      const mcpManager = await plugin.getMcpManager()
-      setMcpManager(mcpManager)
-      setMcpServers(mcpManager.getServers())
+      const nextMcpManager = await plugin.getMcpManager()
+      setMcpManager(nextMcpManager)
+      setMcpServers(nextMcpManager.getServers())
     }
-    initMCPManager()
+    void initMCPManager()
   }, [plugin])
 
   useEffect(() => {
@@ -61,7 +61,8 @@ export function McpSection({ app, plugin }: McpSectionProps) {
       <div className="smtcmp-settings-header">MCP 工具</div>
 
       <div className="smtcmp-settings-desc smtcmp-settings-callout">
-        <strong>注意：</strong> 使用工具时，工具返回内容会一起发送给大模型。如果返回内容很多，会明显增加模型调用量和成本，请谨慎启用或调用可能返回长文本的工具。
+        <strong>注意：</strong> 使用工具时，工具返回内容会和你的问题一起发送给大模型。
+        如果返回内容很多，会明显增加模型调用量和成本，请谨慎启用或调用可能返回长文本的工具。
       </div>
 
       {mcpManager?.disabled ? (
@@ -73,16 +74,16 @@ export function McpSection({ app, plugin }: McpSectionProps) {
       ) : (
         <>
           <div className="smtcmp-settings-sub-header-container">
-            <div className="smtcmp-settings-sub-header">MCP 服务器</div>
+            <div className="smtcmp-settings-sub-header">MCP 服务</div>
             <ObsidianButton
-              text="添加 MCP 服务器"
+              text="添加 MCP 服务"
               onClick={() => new AddMcpServerModal(app, plugin).open()}
             />
           </div>
 
           <div className="smtcmp-mcp-servers-container">
             <div className="smtcmp-mcp-servers-header">
-              <div>服务器</div>
+              <div>服务</div>
               <div>状态</div>
               <div>启用</div>
               <div>操作</div>
@@ -97,9 +98,7 @@ export function McpSection({ app, plugin }: McpSectionProps) {
                 />
               ))
             ) : (
-              <div className="smtcmp-mcp-servers-empty">
-                暂无 MCP 服务器
-              </div>
+              <div className="smtcmp-mcp-servers-empty">暂无 MCP 服务</div>
             )}
           </div>
         </>
@@ -125,10 +124,9 @@ function McpServerComponent({
   }, [server.name, app, plugin])
 
   const handleDelete = useCallback(() => {
-    const message = `确定要删除 MCP 服务器“${server.name}”吗？`
     new ConfirmModal(app, {
-      title: '删除 MCP 服务器',
-      message: message,
+      title: '删除 MCP 服务',
+      message: `确定要删除 MCP 服务“${server.name}”吗？`,
       ctaText: '删除',
       onConfirm: async () => {
         await setSettings({
@@ -279,10 +277,10 @@ function McpToolComponent({
   const allowAutoExecution = toolOption?.allowAutoExecution ?? false
 
   const handleToggleEnabled = (enabled: boolean) => {
-    const toolOptions = server.config.toolOptions
+    const toolOptions = { ...server.config.toolOptions }
     toolOptions[tool.name] = {
       disabled: !enabled,
-      allowAutoExecution: allowAutoExecution,
+      allowAutoExecution,
     }
     setSettings({
       ...settings,
@@ -292,7 +290,7 @@ function McpToolComponent({
           s.id === server.name
             ? {
                 ...s,
-                toolOptions: toolOptions,
+                toolOptions,
               }
             : s,
         ),
@@ -314,7 +312,7 @@ function McpToolComponent({
           s.id === server.name
             ? {
                 ...s,
-                toolOptions: toolOptions,
+                toolOptions,
               }
             : s,
         ),

@@ -15,7 +15,7 @@ export class EmbeddingDbManageModal extends ReactModal<EmbeddingDbManagerModalCo
       Component: EmbeddingDbManageModalComponent,
       props: { app, plugin },
       options: {
-        title: 'Legacy vector note',
+        title: '旧向量说明',
       },
     })
     this.modalEl.style.width = '640px'
@@ -26,24 +26,23 @@ function EmbeddingDbManageModalComponent() {
   return (
     <div className="smtcmp-settings-section">
       <div className="smtcmp-settings-desc">
-        The mainline retrieval flow now uses search-based RAG in Obsidian.
+        当前主线检索流程，已经改为基于 Obsidian 搜索的 RAG。
         <br />
-        Local embeddings, vector databases, and index rebuild steps are no longer
-        part of the default runtime path.
+        本地 embedding、向量数据库和重建索引步骤，已经不再属于默认运行路径。
       </div>
 
       <div className="smtcmp-settings-desc">
-        This legacy entry is kept only as a migration note for older configs.
-        New features should not continue to depend on local embedding configs,
-        vector index maintenance, or vector database operations.
+        这个入口只作为旧配置迁移说明保留。
+        <br />
+        后续新功能不要再继续依赖本地 embedding 配置、向量索引维护或向量数据库操作。
       </div>
 
       <div className="smtcmp-settings-desc">
-        The intended flow is:
+        当前推荐链路是：
         <br />
         <code>
-          Obsidian search -&gt; filter hits -&gt; read relevant paragraphs or
-          heading blocks -&gt; send snippets with sources to the model
+          Obsidian 搜索 -&gt; 过滤命中 -&gt; 读取相关段落或标题块 -&gt;
+          把带来源的片段发送给模型
         </code>
       </div>
     </div>

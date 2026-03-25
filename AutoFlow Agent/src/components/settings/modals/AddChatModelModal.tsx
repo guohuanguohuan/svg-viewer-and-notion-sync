@@ -19,11 +19,11 @@ type AddChatModelModalComponentProps = {
 export class AddChatModelModal extends ReactModal<AddChatModelModalComponentProps> {
   constructor(app: App, plugin: SmartComposerPlugin) {
     super({
-      app: app,
+      app,
       Component: AddChatModelModalComponent,
       props: { plugin },
       options: {
-        title: 'Add Custom Chat Model',
+        title: '添加自定义聊天模型',
       },
     })
   }
@@ -43,7 +43,7 @@ function AddChatModelModalComponent({
 
   const handleSubmit = async () => {
     if (plugin.settings.chatModels.some((p) => p.id === formData.id)) {
-      new Notice('Model with this ID already exists. Try a different ID.')
+      new Notice('这个模型 ID 已存在，请换一个。')
       return
     }
 
@@ -52,7 +52,7 @@ function AddChatModelModalComponent({
         (provider) => provider.id === formData.providerId,
       )
     ) {
-      new Notice('Provider with this ID does not exist')
+      new Notice('对应的 Provider ID 不存在')
       return
     }
 
@@ -73,8 +73,8 @@ function AddChatModelModalComponent({
   return (
     <>
       <ObsidianSetting
-        name="ID"
-        desc="Choose an ID to identify this model in your settings. This is just for your reference."
+        name="模型 ID"
+        desc="用于在设置中标识这个模型，仅供你自己引用。"
         required
       >
         <ObsidianTextInput
@@ -86,7 +86,11 @@ function AddChatModelModalComponent({
         />
       </ObsidianSetting>
 
-      <ObsidianSetting name="Provider ID" required>
+      <ObsidianSetting
+        name="Provider ID"
+        desc="选择这个模型对应的 Provider。"
+        required
+      >
         <ObsidianDropdown
           value={formData.providerId}
           options={Object.fromEntries(
@@ -100,10 +104,9 @@ function AddChatModelModalComponent({
               (p) => p.id === value,
             )
             if (!provider) {
-              new Notice(`Provider with ID ${value} not found`)
+              new Notice(`未找到 Provider：${value}`)
               return
             }
-            // Cast required because we're changing the discriminant field
             setFormData(
               (prev) =>
                 ({
@@ -116,10 +119,14 @@ function AddChatModelModalComponent({
         />
       </ObsidianSetting>
 
-      <ObsidianSetting name="Model Name" required>
+      <ObsidianSetting
+        name="模型名称"
+        desc="填写模型的实际 API 名称。"
+        required
+      >
         <ObsidianTextInput
           value={formData.model}
-          placeholder="Enter the model name"
+          placeholder="例如：gpt-5.2"
           onChange={(value: string) =>
             setFormData((prev) => ({ ...prev, model: value }))
           }
@@ -127,15 +134,15 @@ function AddChatModelModalComponent({
       </ObsidianSetting>
 
       <ObsidianSetting
-        name="Prompt Level"
-        desc={`Choose how complex the system prompt should be. Select "simple" for small models that ignore user questions and just repeat back instructions.`}
+        name="提示词级别"
+        desc='控制系统提示词的复杂度。如果是容易“只复述指令”的小模型，建议选择“simple”。'
         required
       >
         <ObsidianDropdown
           value={(formData.promptLevel ?? PromptLevel.Default).toString()}
           options={{
-            [PromptLevel.Default]: 'default',
-            [PromptLevel.Simple]: 'simple',
+            [PromptLevel.Default]: 'default（默认）',
+            [PromptLevel.Simple]: 'simple（简化）',
           }}
           onChange={(value: string) =>
             setFormData((prev) => ({
@@ -147,8 +154,8 @@ function AddChatModelModalComponent({
       </ObsidianSetting>
 
       <ObsidianSetting>
-        <ObsidianButton text="Add" onClick={handleSubmit} cta />
-        <ObsidianButton text="Cancel" onClick={onClose} />
+        <ObsidianButton text="添加" onClick={handleSubmit} cta />
+        <ObsidianButton text="取消" onClick={onClose} />
       </ObsidianSetting>
     </>
   )

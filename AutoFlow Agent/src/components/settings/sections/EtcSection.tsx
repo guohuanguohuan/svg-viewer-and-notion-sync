@@ -17,27 +17,26 @@ export function EtcSection({ app }: EtcSectionProps) {
 
   const handleResetSettings = () => {
     new ConfirmModal(app, {
-      title: 'Reset settings',
-      message:
-        'Are you sure you want to reset all settings to default values? This cannot be undone.',
-      ctaText: 'Reset',
+      title: '重置设置',
+      message: '确定要把所有设置恢复为默认值吗？这个操作无法撤销。',
+      ctaText: '重置',
       onConfirm: async () => {
         const defaultSettings = smartComposerSettingsSchema.parse({})
         await setSettings(defaultSettings)
-        new Notice('Settings have been reset to defaults')
+        new Notice('设置已恢复为默认值')
       },
     }).open()
   }
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">Etc</div>
+      <div className="smtcmp-settings-header">其他</div>
 
       <ObsidianSetting
-        name="Reset settings"
-        desc="Reset all settings to default values"
+        name="重置设置"
+        desc="把所有设置恢复为默认值"
       >
-        <ObsidianButton text="Reset" warning onClick={handleResetSettings} />
+        <ObsidianButton text="重置" warning onClick={handleResetSettings} />
       </ObsidianSetting>
     </div>
   )

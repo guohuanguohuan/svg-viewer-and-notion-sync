@@ -56,14 +56,14 @@ export function PlanConnectionsSection({
           : GEMINI_PLAN_PROVIDER_ID
 
     new ConfirmModal(app, {
-      title: 'Disconnect subscription',
+      title: '断开订阅连接',
       message:
         providerType === 'anthropic-plan'
-          ? 'Disconnect Claude from AutoFlow Agent?'
+          ? '确定要断开 Claude 和 AutoFlow Agent 的连接吗？'
           : providerType === 'openai-plan'
-            ? 'Disconnect OpenAI from AutoFlow Agent?'
-            : 'Disconnect Gemini from AutoFlow Agent?',
-      ctaText: 'Disconnect',
+            ? '确定要断开 OpenAI 和 AutoFlow Agent 的连接吗？'
+            : '确定要断开 Gemini 和 AutoFlow Agent 的连接吗？',
+      ctaText: '断开连接',
       onConfirm: async () => {
         await setSettings({
           ...settings,
@@ -89,9 +89,9 @@ export function PlanConnectionsSection({
           </div>
 
           <div className="smtcmp-plan-connection-card-desc">
-            Uses your Claude Code usage from your Claude plan.
+            使用你的 Claude 订阅中的 Claude Code 配额。
             <br />
-            Check your limit in Claude Code with <code>/usage</code>.
+            可以在 Claude Code 中通过 <code>/usage</code> 查看额度。
           </div>
 
           <div className="smtcmp-plan-connection-card-actions">
@@ -100,12 +100,12 @@ export function PlanConnectionsSection({
                 className="mod-cta"
                 onClick={() => new ConnectClaudePlanModal(app, plugin).open()}
               >
-                Connect
+                连接
               </button>
             )}
             {isClaudeConnected && (
               <button onClick={() => disconnect('anthropic-plan')}>
-                Disconnect
+                断开连接
               </button>
             )}
           </div>
@@ -118,14 +118,14 @@ export function PlanConnectionsSection({
           </div>
 
           <div className="smtcmp-plan-connection-card-desc">
-            Uses your Codex usage from your ChatGPT plan.
+            使用你的 ChatGPT 订阅中的 Codex 配额。
             <br />
             <a
               href="https://chatgpt.com/codex/settings/usage"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Check Codex usage and limits
+              查看 Codex 使用量和额度
             </a>
           </div>
 
@@ -135,12 +135,12 @@ export function PlanConnectionsSection({
                 className="mod-cta"
                 onClick={() => new ConnectOpenAIPlanModal(app, plugin).open()}
               >
-                Connect
+                连接
               </button>
             )}
             {isOpenAIConnected && (
               <button onClick={() => disconnect('openai-plan')}>
-                Disconnect
+                断开连接
               </button>
             )}
           </div>
@@ -153,9 +153,9 @@ export function PlanConnectionsSection({
           </div>
 
           <div className="smtcmp-plan-connection-card-desc">
-            Uses your Gemini Code Assist usage from your Google AI Plan.
+            使用你的 Google AI 订阅中的 Gemini Code Assist 配额。
             <br />
-            Check your limit in Gemini CLI with <code>/stats</code>.
+            可以在 Gemini CLI 中通过 <code>/stats</code> 查看额度。
           </div>
 
           <div className="smtcmp-plan-connection-card-actions">
@@ -164,12 +164,12 @@ export function PlanConnectionsSection({
                 className="mod-cta"
                 onClick={() => new ConnectGeminiPlanModal(app, plugin).open()}
               >
-                Connect
+                连接
               </button>
             )}
             {isGeminiConnected && (
               <button onClick={() => disconnect('gemini-plan')}>
-                Disconnect
+                断开连接
               </button>
             )}
           </div>
@@ -183,12 +183,12 @@ function PlanConnectionStatusBadge({ connected }: { connected: boolean }) {
   const statusConfig = connected
     ? {
         icon: <Check size={16} />,
-        label: 'Connected',
+        label: '已连接',
         statusClass: 'smtcmp-mcp-server-status-badge--connected',
       }
     : {
         icon: <CircleMinus size={14} />,
-        label: 'Disconnected',
+        label: '未连接',
         statusClass: 'smtcmp-mcp-server-status-badge--disconnected',
       }
 

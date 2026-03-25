@@ -17,18 +17,18 @@ import { ReactModal } from '../../common/ReactModal'
 
 type ProviderFormComponentProps = {
   plugin: SmartComposerPlugin
-  provider: LLMProvider | null // null for new provider
+  provider: LLMProvider | null
   onClose: () => void
 }
 
 export class AddProviderModal extends ReactModal<ProviderFormComponentProps> {
   constructor(app: App, plugin: SmartComposerPlugin) {
     super({
-      app: app,
+      app,
       Component: ProviderFormComponent,
       props: { plugin, provider: null },
       options: {
-        title: 'Add Custom Provider',
+        title: '添加自定义 Provider',
       },
     })
   }
@@ -37,11 +37,11 @@ export class AddProviderModal extends ReactModal<ProviderFormComponentProps> {
 export class EditProviderModal extends ReactModal<ProviderFormComponentProps> {
   constructor(app: App, plugin: SmartComposerPlugin, provider: LLMProvider) {
     super({
-      app: app,
+      app,
       Component: ProviderFormComponent,
       props: { plugin, provider },
       options: {
-        title: `Edit Provider: ${provider.id}`,
+        title: `编辑 Provider：${provider.id}`,
       },
     })
   }
@@ -71,7 +71,7 @@ function ProviderFormComponent({
       )
 
       if (currentProviderIndex === -1) {
-        new Notice(`No provider found with this ID`)
+        new Notice('没有找到这个 Provider ID')
         return
       }
 
@@ -95,7 +95,7 @@ function ProviderFormComponent({
       if (
         plugin.settings.providers.some((p: LLMProvider) => p.id === formData.id)
       ) {
-        new Notice('Provider with this ID already exists. Try a different ID.')
+        new Notice('这个 Provider ID 已存在，请换一个。')
         return
       }
 
@@ -124,7 +124,7 @@ function ProviderFormComponent({
         <>
           <ObsidianSetting
             name="ID"
-            desc="Choose an ID to identify this provider in your settings. This is just for your reference."
+            desc="用于在设置中标识这个 Provider，仅供你自己引用。"
             required
           >
             <ObsidianTextInput
@@ -136,7 +136,7 @@ function ProviderFormComponent({
             />
           </ObsidianSetting>
 
-          <ObsidianSetting name="Provider Type" required>
+          <ObsidianSetting name="Provider 类型" required>
             <ObsidianDropdown
               value={formData.type}
               options={Object.fromEntries(
@@ -166,12 +166,12 @@ function ProviderFormComponent({
         <>
           <ObsidianSetting
             name="API Key"
-            desc="(leave blank if not required)"
+            desc="如果不需要，可以留空。"
             required={providerTypeInfo.requireApiKey}
           >
             <ObsidianTextInput
               value={formData.apiKey ?? ''}
-              placeholder="Enter your API Key"
+              placeholder="输入你的 API Key"
               onChange={(value: string) =>
                 setFormData((prev) => ({ ...prev, apiKey: value }))
               }
@@ -180,12 +180,12 @@ function ProviderFormComponent({
 
           <ObsidianSetting
             name="Base URL"
-            desc="(leave blank if using default)"
+            desc="如果使用默认地址，可以留空。"
             required={providerTypeInfo.requireBaseUrl}
           >
             <ObsidianTextInput
               value={formData.baseUrl ?? ''}
-              placeholder="Enter base URL"
+              placeholder="输入 Base URL"
               onChange={(value: string) =>
                 setFormData((prev) => ({ ...prev, baseUrl: value }))
               }
@@ -248,11 +248,11 @@ function ProviderFormComponent({
 
       <ObsidianSetting>
         <ObsidianButton
-          text={provider ? 'Save' : 'Add'}
+          text={provider ? '保存' : '添加'}
           onClick={handleSubmit}
           cta
         />
-        <ObsidianButton text="Cancel" onClick={onClose} />
+        <ObsidianButton text="取消" onClick={onClose} />
       </ObsidianSetting>
     </>
   )

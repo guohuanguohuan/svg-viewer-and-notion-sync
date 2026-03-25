@@ -9,6 +9,7 @@ import {
   McpServerParameters,
   mcpServerParametersSchema,
 } from '../../../types/mcp.types'
+import { parseJsonWithComments } from '../../../utils/json-with-comments'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ObsidianTextInput } from '../../common/ObsidianTextInput'
@@ -23,11 +24,11 @@ type McpServerFormComponentProps = {
 export class AddMcpServerModal extends ReactModal<McpServerFormComponentProps> {
   constructor(app: App, plugin: SmartComposerPlugin) {
     super({
-      app: app,
+      app,
       Component: McpServerFormComponent,
       props: { plugin },
       options: {
-        title: '添加 MCP 服务器',
+        title: '添加 MCP 服务',
       },
     })
   }
@@ -36,14 +37,44 @@ export class AddMcpServerModal extends ReactModal<McpServerFormComponentProps> {
 export class EditMcpServerModal extends ReactModal<McpServerFormComponentProps> {
   constructor(app: App, plugin: SmartComposerPlugin, editServerId: string) {
     super({
-      app: app,
+      app,
       Component: McpServerFormComponent,
       props: { plugin, serverId: editServerId },
       options: {
-        title: '编辑 MCP 服务器',
+        title: '编辑 MCP 服务',
       },
     })
   }
+}
+
+function buildParametersDraft(parameters?: McpServerParameters): string {
+  if (parameters) {
+    return JSON.stringify(parameters, null, 2)
+  }
+
+  return `{
+  // command: 用于启动 MCP 服务的命令
+  "command": "npx",
+  // args: 启动参数，可选
+  "args": [
+    "-y",
+    "@modelcontextprotocol/server-github"
+  ],
+  // env: 环境变量，可选
+  "env": {
+    // GitHub 个人访问令牌
+    "GITHUB_PERSONAL_ACCESS_TOKEN": "<在这里填写你的令牌>"
+  }
+}`
+}
+
+function formatZodError(error: z.ZodError): string {
+  return error.errors
+    .map((err) => {
+      const path = err.path.length > 0 ? `${err.path.join('.')}: ` : ''
+      return `${path}${err.message}`
+    })
+    .join('\n')
 }
 
 function McpServerFormComponent({
@@ -57,21 +88,11 @@ function McpServerFormComponent({
 
   const [name, setName] = useState(existingServer?.id ?? '')
   const [parameters, setParameters] = useState(
-    existingServer ? JSON.stringify(existingServer.parameters, null, 2) : '',
+    buildParametersDraft(existingServer?.parameters),
   )
   const [validationError, setValidationError] = useState<string | null>(null)
 
-  const PARAMETERS_PLACEHOLDER = JSON.stringify(
-    {
-      command: 'npx',
-      args: ['-y', '@modelcontextprotocol/server-github'],
-      env: {
-        GITHUB_PERSONAL_ACCESS_TOKEN: '<YOUR_TOKEN>',
-      },
-    },
-    null,
-    2,
-  )
+  const PARAMETERS_PLACEHOLDER = buildParametersDraft()
 
   const handleSubmit = async () => {
     try {
@@ -79,7 +100,14 @@ function McpServerFormComponent({
       if (serverName.length === 0) {
         throw new Error('名称不能为空')
       }
-      validateServerName(serverName)
+
+      try {
+        validateServerName(serverName)
+      } catch {
+        throw new Error(
+          'MCP 服务名称只能包含字母、数字、下划线和短横线，且不能包含分隔符。',
+        )
+      }
 
       if (
         plugin.settings.mcp.servers.find(
@@ -87,18 +115,20 @@ function McpServerFormComponent({
             server.id === serverName && server.id !== existingServer?.id,
         )
       ) {
-        throw new Error('已存在同名服务器')
+        throw new Error('已经存在同名的 MCP 服务')
       }
 
       if (parameters.trim().length === 0) {
         throw new Error('参数不能为空')
       }
+
       let parsedParameters: unknown
       try {
-        parsedParameters = JSON.parse(parameters)
+        parsedParameters = parseJsonWithComments(parameters)
       } catch {
-        throw new Error('参数必须是合法 JSON')
+        throw new Error('参数必须是合法的 JSON，可包含 // 中文注释')
       }
+
       const validatedParameters: McpServerParameters = mcpServerParametersSchema
         .strict()
         .parse(parsedParameters)
@@ -130,38 +160,33 @@ function McpServerFormComponent({
       }
 
       await plugin.setSettings(newSettings)
-
       onClose()
     } catch (error) {
-      if (error instanceof Error) {
+      if (error instanceof z.ZodError) {
+        new Notice(formatZodError(error))
+      } else if (error instanceof Error) {
         new Notice(error.message)
       } else {
-        console.error(error)
-        new Notice('保存 MCP 服务器失败。')
+        new Notice('保存 MCP 服务失败。')
       }
     }
   }
 
-  const validateParameters = useCallback((parameters: string) => {
+  const validateParameters = useCallback((nextParameters: string) => {
     try {
-      if (parameters.length === 0) {
+      if (nextParameters.length === 0) {
         setValidationError('参数不能为空')
         return
       }
-      const parsedParameters = JSON.parse(parameters)
+
+      const parsedParameters = parseJsonWithComments(nextParameters)
       mcpServerParametersSchema.strict().parse(parsedParameters)
       setValidationError(null)
     } catch (error) {
       if (error instanceof SyntaxError) {
         setValidationError('JSON 格式无效')
       } else if (error instanceof z.ZodError) {
-        const formattedErrors = error.errors
-          .map((err) => {
-            const path = err.path.length > 0 ? `${err.path.join('.')}: ` : ''
-            return `${path}${err.message}`
-          })
-          .join('\n')
-        setValidationError(formattedErrors)
+        setValidationError(formatZodError(error))
       } else {
         setValidationError(
           error instanceof Error ? error.message : '参数无效',
@@ -176,7 +201,11 @@ function McpServerFormComponent({
 
   return (
     <>
-      <ObsidianSetting name="名称" desc="MCP 服务器名称" required>
+      <ObsidianSetting
+        name="名称"
+        desc="MCP 服务名称。只能包含字母、数字、下划线和短横线。"
+        required
+      >
         <ObsidianTextInput
           value={name}
           onChange={(value: string) => setName(value)}
@@ -186,8 +215,8 @@ function McpServerFormComponent({
 
       <ObsidianSetting
         name="参数"
-        desc={`用于定义如何启动 MCP 服务器的 JSON 配置，格式包括：
-- "command"：可执行命令名，例如 "npx"、"node"
+        desc={`用于定义如何启动 MCP 服务的 JSON 配置，支持写 // 中文注释：
+- "command"：可执行命令，例如 "npx"、"node"
 - "args"：可选，命令行参数数组
 - "env"：可选，环境变量键值对`}
         className="smtcmp-settings-textarea-header smtcmp-settings-description-preserve-whitespace"

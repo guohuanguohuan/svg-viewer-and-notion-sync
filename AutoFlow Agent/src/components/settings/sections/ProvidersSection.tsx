@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { useSettings } from '../../../contexts/settings-context'
 import SmartComposerPlugin from '../../../main'
 import { llmProviderSchema } from '../../../types/provider.types'
+import { parseJsonWithComments } from '../../../utils/json-with-comments'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ObsidianTextArea } from '../../common/ObsidianTextArea'
 
@@ -22,7 +23,7 @@ const providersJsonSchema = z
       if (providerIds.has(provider.id)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Duplicate provider id: ${provider.id}`,
+          message: `存在重复的 provider id：${provider.id}`,
         })
       }
       providerIds.add(provider.id)
@@ -43,7 +44,39 @@ const formatJsonError = (error: unknown) => {
     return error.message
   }
 
-  return 'Invalid JSON.'
+  return 'JSON 格式无效。'
+}
+
+function indentMultilineJson(value: unknown): string {
+  return JSON.stringify(value, null, 2)
+    .split('\n')
+    .map((line, index) => (index === 0 ? line : `  ${line}`))
+    .join('\n')
+}
+
+function buildProvidersDraft(providers: unknown): string {
+  const content = indentMultilineJson(providers)
+
+  if (content === '[]') {
+    return `[
+  // 每个元素都是一个 Provider 配置对象
+  // type: 服务商类型，例如 "openai"、"anthropic"、"gemini"
+  // id: Provider 的唯一标识，chatModels 会通过 providerId 引用它
+  // apiKey: 对应平台的密钥
+  // baseUrl: 自定义接口地址，可选
+  // additionalSettings: 某些 Provider 的额外参数，可选
+]`
+  }
+
+  return `[
+  // 每个元素都是一个 Provider 配置对象
+  // type: 服务商类型，例如 "openai"、"anthropic"、"gemini"
+  // id: Provider 的唯一标识，chatModels 会通过 providerId 引用它
+  // apiKey: 对应平台的密钥
+  // baseUrl: 自定义接口地址，可选
+  // additionalSettings: 某些 Provider 的额外参数，可选
+  ${content.slice(2, -2)}
+]`
 }
 
 export function ProvidersSection(_props: ProvidersSectionProps) {
@@ -52,13 +85,13 @@ export function ProvidersSection(_props: ProvidersSectionProps) {
   const [validationMessage, setValidationMessage] = useState('')
 
   useEffect(() => {
-    setDraft(JSON.stringify(settings.providers, null, 2))
+    setDraft(buildProvidersDraft(settings.providers))
     setValidationMessage('')
   }, [settings.providers])
 
   const handleSave = async () => {
     try {
-      const parsed = JSON.parse(draft)
+      const parsed = parseJsonWithComments(draft)
       const providers = providersJsonSchema.parse(parsed)
       const providerIds = new Set(providers.map((provider) => provider.id))
 
@@ -68,7 +101,7 @@ export function ProvidersSection(_props: ProvidersSectionProps) {
 
       if (missingChatProviders.length > 0) {
         throw new Error(
-          `These chat/apply models reference missing providers:\n${missingChatProviders.join('\n')}`,
+          `以下聊天/执行模型引用了不存在的 Provider：\n${missingChatProviders.join('\n')}`,
         )
       }
 
@@ -76,42 +109,49 @@ export function ProvidersSection(_props: ProvidersSectionProps) {
         ...settings,
         providers,
       })
-      setDraft(JSON.stringify(providers, null, 2))
-      setValidationMessage('Saved providers JSON.')
-      new Notice('Providers JSON saved')
+      setDraft(buildProvidersDraft(providers))
+      setValidationMessage('Provider JSON 已保存。')
+      new Notice('Provider JSON 已保存')
     } catch (error) {
       setValidationMessage(formatJsonError(error))
     }
   }
 
   const handleReset = () => {
-    setDraft(JSON.stringify(settings.providers, null, 2))
+    setDraft(buildProvidersDraft(settings.providers))
     setValidationMessage('')
   }
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">Providers</div>
+      <div className="smtcmp-settings-header">Provider 配置</div>
 
       <div className="smtcmp-settings-desc">
-        <span>Manually edit provider config as JSON.</span>
+        在这里手动编辑 Provider 配置 JSON。
         <br />
-        This data is persisted in the plugin&apos;s <code>data.json</code>.
+        支持使用 <code>// 中文注释</code>，保存后会写入插件的{' '}
+        <code>data.json</code>。
       </div>
 
       <ObsidianSetting className="smtcmp-settings-textarea smtcmp-settings-json-textarea">
         <ObsidianTextArea
           value={draft}
-          placeholder='[{"type":"openai","id":"openai","apiKey":"sk-..."}]'
+          placeholder={buildProvidersDraft([
+            {
+              type: 'openai',
+              id: 'openai',
+              apiKey: 'sk-...',
+            },
+          ])}
           onChange={setDraft}
         />
       </ObsidianSetting>
 
       <div className="smtcmp-settings-json-actions">
         <button className="mod-cta" onClick={() => void handleSave()}>
-          Save JSON
+          保存 JSON
         </button>
-        <button onClick={handleReset}>Reset</button>
+        <button onClick={handleReset}>重置</button>
       </div>
 
       {validationMessage && (
