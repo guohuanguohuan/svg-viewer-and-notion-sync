@@ -1,0 +1,205 @@
+import { Check, CircleMinus } from 'lucide-react'
+import { App } from 'obsidian'
+
+import { PROVIDER_TYPES_INFO } from '../../../constants'
+import { useSettings } from '../../../contexts/settings-context'
+import SmartComposerPlugin from '../../../main'
+import { LLMProvider } from '../../../types/provider.types'
+import { ConfirmModal } from '../../modals/ConfirmModal'
+import { ConnectClaudePlanModal } from '../modals/ConnectClaudePlanModal'
+import { ConnectGeminiPlanModal } from '../modals/ConnectGeminiPlanModal'
+import { ConnectOpenAIPlanModal } from '../modals/ConnectOpenAIPlanModal'
+
+type PlanConnectionsSectionProps = {
+  app: App
+  plugin: SmartComposerPlugin
+}
+
+const CLAUDE_PLAN_PROVIDER_ID = PROVIDER_TYPES_INFO['anthropic-plan']
+  .defaultProviderId as string
+const OPENAI_PLAN_PROVIDER_ID = PROVIDER_TYPES_INFO['openai-plan']
+  .defaultProviderId as string
+const GEMINI_PLAN_PROVIDER_ID = PROVIDER_TYPES_INFO['gemini-plan']
+  .defaultProviderId as string
+
+export function PlanConnectionsSection({
+  app,
+  plugin,
+}: PlanConnectionsSectionProps) {
+  const { settings, setSettings } = useSettings()
+
+  const claudePlanProvider = settings.providers.find(
+    (p): p is Extract<LLMProvider, { type: 'anthropic-plan' }> =>
+      p.id === CLAUDE_PLAN_PROVIDER_ID && p.type === 'anthropic-plan',
+  )
+  const openAIPlanProvider = settings.providers.find(
+    (p): p is Extract<LLMProvider, { type: 'openai-plan' }> =>
+      p.id === OPENAI_PLAN_PROVIDER_ID && p.type === 'openai-plan',
+  )
+  const geminiPlanProvider = settings.providers.find(
+    (p): p is Extract<LLMProvider, { type: 'gemini-plan' }> =>
+      p.id === GEMINI_PLAN_PROVIDER_ID && p.type === 'gemini-plan',
+  )
+
+  const isClaudeConnected = !!claudePlanProvider?.oauth?.accessToken
+  const isOpenAIConnected = !!openAIPlanProvider?.oauth?.accessToken
+  const isGeminiConnected = !!geminiPlanProvider?.oauth?.accessToken
+
+  const disconnect = (
+    providerType: 'anthropic-plan' | 'openai-plan' | 'gemini-plan',
+  ) => {
+    const providerId =
+      providerType === 'anthropic-plan'
+        ? CLAUDE_PLAN_PROVIDER_ID
+        : providerType === 'openai-plan'
+          ? OPENAI_PLAN_PROVIDER_ID
+          : GEMINI_PLAN_PROVIDER_ID
+
+    new ConfirmModal(app, {
+      title: '断开订阅连接',
+      message:
+        providerType === 'anthropic-plan'
+          ? '确定要断开 Claude 和 AutoFlow Agent 的连接吗？'
+          : providerType === 'openai-plan'
+            ? '确定要断开 OpenAI 和 AutoFlow Agent 的连接吗？'
+            : '确定要断开 Gemini 和 AutoFlow Agent 的连接吗？',
+      ctaText: '断开连接',
+      onConfirm: async () => {
+        await setSettings({
+          ...settings,
+          providers: settings.providers.map((p) => {
+            if (p.id !== providerId || p.type !== providerType) return p
+            return {
+              ...p,
+              oauth: undefined,
+            }
+          }),
+        })
+      },
+    }).open()
+  }
+
+  return (
+    <div className="smtcmp-settings-section">
+      <div className="smtcmp-plan-connection-grid">
+        <div className="smtcmp-plan-connection-card">
+          <div className="smtcmp-plan-connection-card-header">
+            <div className="smtcmp-plan-connection-card-title">Claude</div>
+            <PlanConnectionStatusBadge connected={isClaudeConnected} />
+          </div>
+
+          <div className="smtcmp-plan-connection-card-desc">
+            使用你的 Claude 订阅中的 Claude Code 配额。
+            <br />
+            可以在 Claude Code 中通过 <code>/usage</code> 查看额度。
+          </div>
+
+          <div className="smtcmp-plan-connection-card-actions">
+            {!isClaudeConnected && (
+              <button
+                className="mod-cta"
+                onClick={() => new ConnectClaudePlanModal(app, plugin).open()}
+              >
+                连接
+              </button>
+            )}
+            {isClaudeConnected && (
+              <button onClick={() => disconnect('anthropic-plan')}>
+                断开连接
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="smtcmp-plan-connection-card">
+          <div className="smtcmp-plan-connection-card-header">
+            <div className="smtcmp-plan-connection-card-title">OpenAI</div>
+            <PlanConnectionStatusBadge connected={isOpenAIConnected} />
+          </div>
+
+          <div className="smtcmp-plan-connection-card-desc">
+            使用你的 ChatGPT 订阅中的 Codex 配额。
+            <br />
+            <a
+              href="https://chatgpt.com/codex/settings/usage"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              查看 Codex 使用量和额度
+            </a>
+          </div>
+
+          <div className="smtcmp-plan-connection-card-actions">
+            {!isOpenAIConnected && (
+              <button
+                className="mod-cta"
+                onClick={() => new ConnectOpenAIPlanModal(app, plugin).open()}
+              >
+                连接
+              </button>
+            )}
+            {isOpenAIConnected && (
+              <button onClick={() => disconnect('openai-plan')}>
+                断开连接
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="smtcmp-plan-connection-card">
+          <div className="smtcmp-plan-connection-card-header">
+            <div className="smtcmp-plan-connection-card-title">Gemini</div>
+            <PlanConnectionStatusBadge connected={isGeminiConnected} />
+          </div>
+
+          <div className="smtcmp-plan-connection-card-desc">
+            使用你的 Google AI 订阅中的 Gemini Code Assist 配额。
+            <br />
+            可以在 Gemini CLI 中通过 <code>/stats</code> 查看额度。
+          </div>
+
+          <div className="smtcmp-plan-connection-card-actions">
+            {!isGeminiConnected && (
+              <button
+                className="mod-cta"
+                onClick={() => new ConnectGeminiPlanModal(app, plugin).open()}
+              >
+                连接
+              </button>
+            )}
+            {isGeminiConnected && (
+              <button onClick={() => disconnect('gemini-plan')}>
+                断开连接
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PlanConnectionStatusBadge({ connected }: { connected: boolean }) {
+  const statusConfig = connected
+    ? {
+        icon: <Check size={16} />,
+        label: '已连接',
+        statusClass: 'smtcmp-mcp-server-status-badge--connected',
+      }
+    : {
+        icon: <CircleMinus size={14} />,
+        label: '未连接',
+        statusClass: 'smtcmp-mcp-server-status-badge--disconnected',
+      }
+
+  return (
+    <div
+      className={`smtcmp-mcp-server-status-badge ${statusConfig.statusClass}`}
+    >
+      {statusConfig.icon}
+      <div className="smtcmp-mcp-server-status-badge-label">
+        {statusConfig.label}
+      </div>
+    </div>
+  )
+}
