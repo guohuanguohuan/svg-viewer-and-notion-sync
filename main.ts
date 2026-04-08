@@ -34,6 +34,15 @@ type FormulaImportStrategy = "hybrid" | "static";
 type SyncStatus = "idle" | "success" | "failed" | "skipped";
 type SyncTrigger = "startup" | "manual";
 
+interface SyncSummary {
+	status: string;
+	statusEn: string;
+	message: string;
+	finishedAt: string;
+	finishedAtEn: string;
+	folder: string;
+}
+
 interface SvgCodeRendererSettings {
 	notionApiToken: string;
 	notionImportBaseFolder: string;
@@ -211,7 +220,7 @@ export default class SvgCodeRendererPlugin extends Plugin {
 			id: "show-last-notion-sync-status",
 			name: "显示上次 Notion 同步状态",
 			callback: () => {
-				new Notice(this.getLastSyncSummary());
+				new Notice(this.getLastSyncSummaryText());
 			},
 		});
 
@@ -359,20 +368,42 @@ export default class SvgCodeRendererPlugin extends Plugin {
 		}
 	}
 
-	getLastSyncSummary(): string {
+	getLastSyncSummary(): SyncSummary {
+		const statusMap: Record<SyncStatus, { zh: string; en: string }> = {
+			idle: { zh: "未同步", en: "Not synced" },
+			success: { zh: "成功", en: "Success" },
+			failed: { zh: "失败", en: "Failed" },
+			skipped: { zh: "已跳过", en: "Skipped" },
+		};
+
+		const statusInfo = statusMap[this.settings.lastSyncStatus];
+
+		return {
+			status: statusInfo.zh,
+			statusEn: statusInfo.en,
+			message: this.settings.lastSyncMessage,
+			finishedAt: this.settings.lastSyncFinishedAt
+				? this.formatTimestampForDisplay(this.settings.lastSyncFinishedAt)
+				: "-",
+			finishedAtEn: this.settings.lastSyncFinishedAt
+				? this.formatTimestampForDisplay(this.settings.lastSyncFinishedAt)
+				: "-",
+			folder: this.settings.lastSyncFolder || "-",
+		};
+	}
+
+	getLastSyncSummaryText(): string {
+		const summary = this.getLastSyncSummary();
 		const parts: string[] = [
-			`状态：${this.describeSyncStatus(this.settings.lastSyncStatus)}。`,
-			this.settings.lastSyncMessage,
+			`状态：${summary.status}。`,
+			summary.message,
 		];
-
 		if (this.settings.lastSyncFinishedAt) {
-			parts.push(`上次完成时间：${this.formatTimestampForDisplay(this.settings.lastSyncFinishedAt)}。`);
+			parts.push(`上次完成时间：${summary.finishedAt}。`);
 		}
-
 		if (this.settings.lastSyncFolder) {
-			parts.push(`最近同步目录：${this.settings.lastSyncFolder}。`);
+			parts.push(`最近同步目录：${summary.folder}。`);
 		}
-
 		return parts.join(" ");
 	}
 
@@ -1045,8 +1076,19 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl).setName("上次同步 / Last Sync").setHeading();
 
+		const summary = this.plugin.getLastSyncSummary();
+		
 		containerEl.createEl("p", {
-			text: this.plugin.getLastSyncSummary(),
+			text: `状态 / Status: ${summary.status} / ${summary.statusEn}`,
+		});
+		containerEl.createEl("p", {
+			text: summary.message,
+		});
+		containerEl.createEl("p", {
+			text: `完成时间 / Finished: ${summary.finishedAt}`,
+		});
+		containerEl.createEl("p", {
+			text: `同步目录 / Folder: ${summary.folder}`,
 		});
 
 		new Setting(containerEl)
