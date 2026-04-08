@@ -1,7 +1,7 @@
 # SVG Viewer & Notion Sync
 
-![版本](https://img.shields.io/github/manifest-json/v/guohuanguohuan/svg-viewer-and-notion-sync?color=blue&label=版本)
-![许可证](https://img.shields.io/github/license/guohuanguohuan/svg-viewer-and-notion-sync?label=许可证)
+![版本](https://img.shields.io/badge/版本-v0.3.0-blue)
+![许可证](https://img.shields.io/badge/许可证-MIT-green)
 ![最低版本](https://img.shields.io/badge/最低版本-v1.5.0+-purple)
 
 为 Obsidian 提供响应式 SVG 预览和自动化的 Notion 内容同步。
