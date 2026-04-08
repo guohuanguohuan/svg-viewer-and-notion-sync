@@ -4,6 +4,12 @@
 
 本插件基于 Obsidian Importer 的 Notion API，旨在实现 Notion 页面与本地 Obsidian 的深度同步，并优化 SVG 代码块的预览体验。
 
+## 📝 开发背景
+
+这个插件是我在安卓端日常使用 Notion AI 之后自动将 Notion 内容同步到 Obsidian 用的。但是 Notion AI 太贵了，而且听说以后 Notion AI 会按量计费，所以打算自己做一个 Obsidian 插件来实现我自己想要的功能。
+
+这个插件以后可能不用了，功能还蛮简单的，纯用 AI 完成的。各位如果发现不好用可以自行用 AI 改改。
+
 ## 🌟 核心功能
 
 - **自动化同步**：利用 Notion API，将页面自动同步到 Obsidian 本地指定位置。
@@ -36,6 +42,12 @@
 # English Documentation
 
 This plugin is based on the Notion API of Obsidian Importer, aiming to achieve deep synchronization between Notion pages and local Obsidian, while optimizing the SVG code block preview experience.
+
+## 📝 Background
+
+I created this plugin to automatically sync Notion content to Obsidian after using Notion AI on Android daily. However, Notion AI is too expensive, and I heard that Notion AI will switch to usage-based pricing in the future, so I decided to make my own Obsidian plugin to implement the features I need.
+
+I may not use this plugin in the future. The functionality is quite simple and was completed entirely with AI. If you find it doesn't work well for you, feel free to modify it with AI yourself.
 
 ## 🌟 Core Features
 
