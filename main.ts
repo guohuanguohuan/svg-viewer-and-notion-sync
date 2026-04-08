@@ -38,6 +38,7 @@ interface SyncSummary {
 	status: string;
 	statusEn: string;
 	message: string;
+	messageEn: string;
 	finishedAt: string;
 	finishedAtEn: string;
 	folder: string;
@@ -55,6 +56,7 @@ interface SvgCodeRendererSettings {
 	maxSyncVersions: number;
 	lastSyncStatus: SyncStatus;
 	lastSyncMessage: string;
+	lastSyncMessageEn: string;
 	lastSyncFolder: string;
 	lastSyncStartedAt: string;
 	lastSyncFinishedAt: string;
@@ -72,6 +74,7 @@ const DEFAULT_SETTINGS: SvgCodeRendererSettings = {
 	maxSyncVersions: 5,
 	lastSyncStatus: "idle",
 	lastSyncMessage: "尚未执行过 Notion 同步。",
+	lastSyncMessageEn: "Notion sync has not been executed yet.",
 	lastSyncFolder: "",
 	lastSyncStartedAt: "",
 	lastSyncFinishedAt: "",
@@ -300,6 +303,7 @@ export default class SvgCodeRendererPlugin extends Plugin {
 			await this.updateSyncState(
 				"skipped",
 				"由于尚未配置 API Token，已跳过 Notion 同步。",
+				"Notion sync was skipped because API Token is not configured.",
 				"",
 			);
 			if (trigger === "manual") {
@@ -311,7 +315,8 @@ export default class SvgCodeRendererPlugin extends Plugin {
 		const importerPlugin = this.getImporterPlugin();
 		if (!importerPlugin) {
 			const message = 'Notion 同步依赖社区插件 “Importer”，请先安装并启用它。';
-			await this.updateSyncState("failed", message, "");
+			const messageEn = 'Notion sync depends on the community plugin "Importer", please install and enable it first.';
+			await this.updateSyncState("failed", message, messageEn, "");
 			new Notice(message);
 			return;
 		}
@@ -319,7 +324,8 @@ export default class SvgCodeRendererPlugin extends Plugin {
 		const importerDefinition = importerPlugin.importers?.[IMPORTER_FORMAT_ID];
 		if (!importerDefinition) {
 			const message = 'Importer 插件没有暴露 “Notion (API)” 导入器。';
-			await this.updateSyncState("failed", message, "");
+			const messageEn = 'The Importer plugin does not expose the "Notion (API)" importer.';
+			await this.updateSyncState("failed", message, messageEn, "");
 			new Notice(message);
 			return;
 		}
@@ -352,8 +358,8 @@ export default class SvgCodeRendererPlugin extends Plugin {
 			const importedFileStats = this.collectImportedFileStats(versionFolderPath);
 			const message = this.buildSyncSummary(versionFolderPath, ctx, importedFileStats);
 
-			await this.updateSyncState(syncStatus, message, versionFolderPath, startedAt);
-			new Notice(message);
+			await this.updateSyncState(syncStatus, message.zh, message.en, versionFolderPath, startedAt);
+			new Notice(message.zh);
 		} catch (error) {
 			const removedEmptyFolder = await this.cleanupEmptyVersionFolder(versionFolderPath);
 			if (removedEmptyFolder) {
@@ -361,7 +367,8 @@ export default class SvgCodeRendererPlugin extends Plugin {
 			}
 			await this.cleanupOldVersionFolders();
 			const message = `Notion 同步失败：${this.getErrorMessage(error)}`;
-			await this.updateSyncState("failed", message, versionFolderPath, startedAt);
+			const messageEn = `Notion sync failed: ${this.getErrorMessage(error)}`;
+			await this.updateSyncState("failed", message, messageEn, versionFolderPath, startedAt);
 			new Notice(message);
 		} finally {
 			this.syncInProgress = false;
@@ -382,6 +389,7 @@ export default class SvgCodeRendererPlugin extends Plugin {
 			status: statusInfo.zh,
 			statusEn: statusInfo.en,
 			message: this.settings.lastSyncMessage,
+			messageEn: this.settings.lastSyncMessageEn,
 			finishedAt: this.settings.lastSyncFinishedAt
 				? this.formatTimestampForDisplay(this.settings.lastSyncFinishedAt)
 				: "-",
@@ -797,7 +805,7 @@ export default class SvgCodeRendererPlugin extends Plugin {
 		versionFolderPath: string,
 		ctx: SyncImportContext,
 		importedFileStats: ImportedFileStats,
-	): string {
+	): { zh: string; en: string } {
 		const importedNotes = importedFileStats.notes > 0 ? importedFileStats.notes : ctx.notes;
 		const importedAttachments =
 			importedFileStats.totalFiles > 0 ? importedFileStats.attachments : ctx.attachments;
@@ -806,46 +814,67 @@ export default class SvgCodeRendererPlugin extends Plugin {
 			importedFileStats.totalFiles > 0
 				? importedFileStats.totalFiles
 				: importedNotes + importedAttachments;
-		const breakdown = [
+		
+		const breakdownZh = [
 			`${importedNotes} 个笔记`,
 			`${importedAttachments} 个附件`,
 		];
+		const breakdownEn = [
+			`${importedNotes} notes`,
+			`${importedAttachments} attachments`,
+		];
 
 		if (importedDatabaseFiles > 0) {
-			breakdown.push(`${importedDatabaseFiles} 个数据库文件`);
+			breakdownZh.push(`${importedDatabaseFiles} 个数据库文件`);
+			breakdownEn.push(`${importedDatabaseFiles} database files`);
 		}
 
-		const summaryParts = [
+		const summaryPartsZh = [
 			`已导入 ${totalImportedFiles} 个文件`,
-			`(${breakdown.join(", ")})`,
+			`(${breakdownZh.join(", ")})`,
 			`到 "${versionFolderPath}"`,
+		];
+		const summaryPartsEn = [
+			`Imported ${totalImportedFiles} files`,
+			`(${breakdownEn.join(", ")})`,
+			`to "${versionFolderPath}"`,
 		];
 
 		if (importedFileStats.totalFiles > 0 && ctx.notes + ctx.attachments === 0) {
-			summaryParts.push(
+			summaryPartsZh.push(
 				"由于 Importer 插件没有上报逐文件进度，以上统计基于 Vault 中实际生成的文件",
+			);
+			summaryPartsEn.push(
+				"Since the Importer plugin did not report per-file progress, the above statistics are based on files actually generated in the Vault",
 			);
 		}
 
 		if (ctx.skipped.length > 0) {
-			summaryParts.push(`跳过了 ${ctx.skipped.length} 项`);
+			summaryPartsZh.push(`跳过了 ${ctx.skipped.length} 项`);
+			summaryPartsEn.push(`skipped ${ctx.skipped.length} items`);
 		}
 
 		if (ctx.failed.length > 0) {
-			summaryParts.push(`失败了 ${ctx.failed.length} 项`);
+			summaryPartsZh.push(`失败了 ${ctx.failed.length} 项`);
+			summaryPartsEn.push(`failed ${ctx.failed.length} items`);
 		}
 
-		return `${summaryParts.join(" ")}.`;
+		return {
+			zh: `${summaryPartsZh.join(" ")}.`,
+			en: `${summaryPartsEn.join(" ")}.`,
+		};
 	}
 
 	private async updateSyncState(
 		status: SyncStatus,
 		message: string,
+		messageEn: string,
 		versionFolderPath: string,
 		startedAt?: string,
 	): Promise<void> {
 		this.settings.lastSyncStatus = status;
 		this.settings.lastSyncMessage = message;
+		this.settings.lastSyncMessageEn = messageEn;
 		this.settings.lastSyncFolder = versionFolderPath;
 		this.settings.lastSyncStartedAt = startedAt ?? this.settings.lastSyncStartedAt;
 		this.settings.lastSyncFinishedAt = new Date().toISOString();
@@ -1083,6 +1112,9 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 		});
 		containerEl.createEl("p", {
 			text: summary.message,
+		});
+		containerEl.createEl("p", {
+			text: summary.messageEn,
 		});
 		containerEl.createEl("p", {
 			text: `完成时间 / Finished: ${summary.finishedAt}`,
