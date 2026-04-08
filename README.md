@@ -72,18 +72,100 @@
 
 ---
 
+## Manual Setup / 手动设置
+
+### Step 1: Install Importer Plugin / 安装 Importer 插件
+
+| English | 中文 |
+|:--------|:-----|
+| 1. Open Obsidian Settings (`Ctrl/Cmd + ,`) | 1. 打开 Obsidian 设置（`Ctrl/Cmd + ,`） |
+| 2. Go to **Community Plugins** → **Browse** | 2. 进入 **社区插件** → **浏览** |
+| 3. Search for "**Importer**" | 3. 搜索 "**Importer**" |
+| 4. Click **Install** and **Enable** | 4. 点击 **安装** 并 **启用** |
+
+---
+
+### Step 2: Get Notion API Token / 获取 Notion API Token
+
+| English | 中文 |
+|:--------|:-----|
+| 1. Open Notion, click your profile picture (top right) | 1. 打开 Notion，点击右上角头像 |
+| 2. Go to **Settings** | 2. 进入 **设置** |
+| 3. Navigate to **Connections** | 3. 选择 **连接** |
+| 4. Click "**Develop or manage integrations**" (gray text at bottom) | 4. 点击 "**开发或管理集成**"（最下方灰色字） |
+| 5. Click **+ New integration** | 5. 点击 **+ 新建集成** |
+| 6. Select **Internal integration** | 6. 选择 **内部集成** |
+| 7. Fill in the name and submit | 7. 填写名称并提交 |
+| 8. Copy the **Internal Integration Secret** (this is your API Token) | 8. 复制 **内部集成密钥**（这就是你的 API Token） |
+
+---
+
+### Step 3: Connect Pages to Integration / 将页面连接到集成
+
+| English | 中文 |
+|:--------|:-----|
+| 1. Go to the Notion page you want to sync | 1. 进入要同步的 Notion 页面 |
+| 2. Click **...** (more options) at top right | 2. 点击右上角 **...**（更多选项） |
+| 3. Select **Connections** → **Add connections** | 3. 选择 **连接** → **添加连接** |
+| 4. Select your integration | 4. 选择你创建的集成 |
+| 5. Repeat for all pages you want to sync | 5. 对所有要同步的页面重复此操作 |
+
+> [!IMPORTANT]
+> **Pages must be connected to your integration, otherwise the API cannot access them.**
+> 
+> **页面必须连接到你的集成，否则 API 无法访问它们。**
+
+---
+
+### Step 4: Configure Plugin / 配置插件
+
+| English | 中文 |
+|:--------|:-----|
+| 1. Open Obsidian Settings → Community Plugins | 1. 打开 Obsidian 设置 → 社区插件 |
+| 2. Find "**SVG Viewer & Notion Sync**" → Click ⚙️ | 2. 找到 "**SVG Viewer & Notion Sync**" → 点击 ⚙️ |
+| 3. Paste your **Notion API Token** | 3. 粘贴你的 **Notion API Token** |
+| 4. Adjust other settings as needed | 4. 根据需要调整其他设置 |
+
+---
+
+### Step 5: Start Syncing / 开始同步
+
+| English | 中文 |
+|:--------|:-----|
+| Press `Ctrl/Cmd + P` to open command palette | 按 `Ctrl/Cmd + P` 打开命令面板 |
+| Search and run: **Sync Notion now** | 搜索并运行：**立即同步 Notion** |
+
+---
+
 ## Configuration / 配置
 
-| Setting (英文) | 说明 (Chinese) | Default |
-| :--- | :--- | :--- |
-| **Notion API Token** | Notion 集成令牌 | - |
-| **Auto Sync on Startup** | 启动时自动同步 | Enabled |
-| **Import Base Folder** | 导入根目录 | `Notion imports` |
-| **Version Count** | 保留版本数 | 5 |
+| Setting / 设置 | Description (EN) | 说明 (中文) | Default |
+|:---------------|:-----------------|:------------|:--------|
+| **Notion API Token** | Your Notion integration secret | Notion 集成密钥 | - |
+| **Auto Sync on Startup** | Sync automatically when Obsidian starts | 启动时自动同步 | Enabled |
+| **Import Base Folder** | Root folder for imported content | 导入内容根目录 | `Notion imports` |
+| **Version Count** | Number of versions to keep | 保留版本数量 | 5 |
+
+---
 
 ## Installation / 安装
 
-Available via **Obsidian Community Plugins**. Search for "SVG Viewer & Notion Sync".
+### Via Community Plugins (Recommended) / 通过社区插件安装（推荐）
+
+Search for "**SVG Viewer & Notion Sync**" in Obsidian Community Plugins.
+
+在 Obsidian 社区插件中搜索 "**SVG Viewer & Notion Sync**"。
+
+### Manual Installation / 手动安装
+
+| English | 中文 |
+|:--------|:-----|
+| 1. Download `main.js`, `manifest.json`, `styles.css` from [Releases](https://github.com/guohuanguohuan/svg-viewer-and-notion-sync/releases) | 1. 从 [Releases](https://github.com/guohuanguohuan/svg-viewer-and-notion-sync/releases) 下载 `main.js`、`manifest.json`、`styles.css` |
+| 2. Create folder: `<vault>/.obsidian/plugins/svg-viewer-notion-sync/` | 2. 创建文件夹：`<vault>/.obsidian/plugins/svg-viewer-notion-sync/` |
+| 3. Copy downloaded files into the folder | 3. 将下载的文件复制到该文件夹 |
+| 4. Enable the plugin in Community Plugins settings | 4. 在社区插件设置中启用该插件 |
+
+---
 
 ## Development / 开发
 
@@ -94,4 +176,3 @@ npm install && npm run build
 ---
 
 **License**: MIT
-
