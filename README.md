@@ -30,3 +30,36 @@
    - `main.js`
    - `manifest.json`
    - `styles.css`
+
+---
+
+# English Documentation
+
+This plugin is based on the Notion API of Obsidian Importer, aiming to achieve deep synchronization between Notion pages and local Obsidian, while optimizing the SVG code block preview experience.
+
+## 🌟 Core Features
+
+- **Automatic Sync**: Use Notion API to automatically sync pages to a specified location in Obsidian.
+  - **Multiple Triggers**: Support automatic sync when loading the plugin or starting Obsidian, with manual sync option available.
+  - **Flexible Control**: Enable or disable automatic sync at any time.
+- **Version Management**: Keeps the latest **5 versions** by default (configurable in settings), ensuring data safety.
+- **SVG Fix & Preview**:
+  - Automatically handles Notion exported code block markers (removes extra backticks on both sides) for inline SVG preview.
+  - **Note**: Please set the code block language tag to `xml` for embedded SVG in Notion.
+
+## ⚙️ Setup Guide
+
+### How to get Notion API?
+1. Go to Notion **Settings & Members**.
+2. Select **Connections** -> **Develop or manage integrations** (gray text at the bottom).
+3. Select **Internal Integration**.
+4. Click **Create** to get your API key.
+
+## 📥 Installation
+
+1. **Prerequisite**: Install the official **Obsidian Importer** plugin first.
+2. **Create Directory**: Create a folder named `svg-viewer-notion-sync` in your vault path `.obsidian\plugins`.
+3. **Deploy Files**: Download and place the following files:
+   - `main.js`
+   - `manifest.json`
+   - `styles.css`
