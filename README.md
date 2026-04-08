@@ -1,6 +1,6 @@
 # SVG Viewer & Notion Sync
 
-![版本](https://img.shields.io/badge/版本-v0.3.0-blue) ![许可证](https://img.shields.io/badge/许可证-MIT-green) ![最低版本](https://img.shields.io/badge/最低版本-v1.5.0+-purple)
+[![版本](https://img.shields.io/github/manifest-json/v/guohuanguohuan/svg-viewer-and-notion-sync?label=版本&color=blue)](https://github.com/guohuanguohuan/svg-viewer-and-notion-sync/blob/main/manifest.json) [![GitHub license](https://img.shields.io/github/license/guohuanguohuan/svg-viewer-and-notion-sync?label=许可证&color=green)](https://github.com/guohuanguohuan/svg-viewer-and-notion-sync/blob/main/LICENSE) [![最低版本](https://img.shields.io/badge/最低版本-v1.5.0+-purple)](https://github.com/guohuanguohuan/svg-viewer-and-notion-sync/blob/main/manifest.json)
 
 本插件基于 Obsidian Importer 的 Notion API，旨在实现 Notion 页面与本地 Obsidian 的深度同步，并优化 SVG 代码块的预览体验。
 

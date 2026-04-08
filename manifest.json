@@ -4,7 +4,7 @@
   "version": "0.3.0",
   "minAppVersion": "1.5.0",
   "description": "Render `svg`/`xml` code blocks as inline previews and sync Notion imports into timestamped folders.",
-  "author": "Codex",
-  "authorUrl": "https://openai.com",
+  "author": "houyi",
+  "authorUrl": "https://github.com/guohuanguohuan/svg-viewer-and-notion-sync",
   "isDesktopOnly": false
 }
