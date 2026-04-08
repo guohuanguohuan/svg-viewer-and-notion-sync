@@ -4,9 +4,15 @@
 ![许可证](https://img.shields.io/badge/许可证-MIT-green)
 ![最低版本](https://img.shields.io/badge/最低版本-v1.5.0+-purple)
 
-利用 Notion API，将 Notion 的页面自动同步到 Obsidian 本地指定位置。每次重新加载插件或加载 Obsidian 都会自动同步（可配置）。由于同步的是 Obsidian Importer 导入的内容，本项目会自动处理 SVG 格式不兼容问题（主推配合 Notion 内嵌 SVG 转 xml 标语）。
+利用notion api，将notion的页面自动同步到obsidian本地指定位置，每次重新加载插件或者加载Obsidian都会自动同步，可以取消自动同步和手动同步，会保留最新的五个版本
+，再安装这个插件才能用，如果notion页面中有内嵌svg代码，同步到Obsidian的svg代码外边会有三个点，导致显示的是代码不是图片，这个插件会将这几个点删除（记得将notion内嵌svg代码标语改成xml）
 
----
+notion api获取办法：notion设置-连接-开发或管理集成（再最下方灰色字）-内部集成-创建
+
+此插件安装办法：先安装Obsidian importer插件，之后在.obsidian\plugins中创建svg-viewer-notion-sync文件夹，之后下载`main.js`、`manifest.json`、`styles.css`并放进这个新建的文件夹即可
+
+
+版本数量似乎需要放在手动设置部分，手动设置的svg说明似乎不太对，全部完成之后记得写成中英文分开的那种。
 
 ---
 
