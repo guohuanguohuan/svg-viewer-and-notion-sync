@@ -27,6 +27,9 @@
 - **Versioning**: Each sync creates a unique `run-YYYYMMDD-HHMMSS` folder, serving as an immutable snapshot.
 - **Snapshot Management**: Automatically retains only the **latest 5 versions** to optimize storage.
 
+> [!NOTE]
+> **Performance**: Importing via Notion API can be slow. It may take **~1 minute** for changes to appear in Obsidian after triggering the sync.
+
 ### 📖 Quick Start
 1. **SVG**: Wrap your code in ` ```svg ` or ` ```xml ` blocks. 
    - *Tip*: Use `xml` for SVG code in Notion to ensure the Importer treats it correctly.
@@ -55,6 +58,9 @@
 - **插件桥接**：作为官方 **Importer** 插件的自动化层，通过编程方式调用其 `Notion (API)` 导入流程。
 - **版本控制**：每次同步生成独立的 `run-YYYYMMDD-HHMMSS` 文件夹，作为内容快照。
 - **容量管理**：自动保留**最近 5 个版本**，过旧的版本将被清理以节省空间。
+
+> [!NOTE]
+> **性能说明**：受限于 Notion API 响应速度，同步过程可能需要 **1 分钟左右** 才能在 Obsidian 中看到文件变化，请耐心等待。
 
 ### 📖 快速上手
 1. **SVG**：将代码放入 ` ```svg ` 或 ` ```xml ` 代码块。
