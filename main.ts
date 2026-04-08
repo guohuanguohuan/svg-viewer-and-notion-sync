@@ -911,21 +911,27 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		containerEl.addClass("svg-code-renderer-setting");
 
-		new Setting(containerEl).setName("svg相关说明").setHeading();
+		new Setting(containerEl).setName("svg相关说明 / SVG Info").setHeading();
 
 		containerEl.createEl("p", {
 			text: '如果notion页面中有内嵌svg代码，同步到Obsidian的svg代码外边会有三个点，导致显示的是代码不是图片，这个插件会将这几个点删除（记得将notion内嵌svg代码标语改成xml）',
 		});
+		containerEl.createEl("p", {
+			text: 'If there is embedded SVG code in a Notion page, the synced SVG code in Obsidian will have three extra backticks, causing it to display as code instead of an image. This plugin removes those backticks (remember to change the Notion embedded SVG code language tag to xml).',
+		});
 
-		new Setting(containerEl).setName("Notion 同步").setHeading();
+		new Setting(containerEl).setName("Notion 同步 / Sync").setHeading();
 
 		containerEl.createEl("p", {
 			text: '依赖社区插件 "Importer"。每次同步都会创建一个新的时间戳子目录，旧版本会自动清理。',
 		});
+		containerEl.createEl("p", {
+			text: 'Depends on the community plugin "Importer". Each sync creates a new timestamped subdirectory, and old versions are automatically cleaned up.',
+		});
 
 		new Setting(containerEl)
 			.setName("Notion API Token")
-			.setDesc("用于 Importer -> Notion (API)。")
+			.setDesc("用于 Importer -> Notion (API)。 / Used for Importer -> Notion (API).")
 			.addText((text) => {
 				text.setPlaceholder("ntn_...")
 					.setValue(this.plugin.settings.notionApiToken)
@@ -937,8 +943,8 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("导入根目录")
-			.setDesc("每次同步都会在这里创建一个新的时间戳子目录。")
+			.setName("导入根目录 / Import Root Directory")
+			.setDesc("每次同步都会在这里创建一个新的时间戳子目录。 / Each sync creates a new timestamped subdirectory here.")
 			.addText((text) =>
 				text
 					.setPlaceholder(DEFAULT_IMPORT_ROOT)
@@ -950,8 +956,8 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("保留版本数")
-			.setDesc("自动清理前保留的快照数量，超过此数量的旧版本会被移到回收站。")
+			.setName("保留版本数 / Max Versions")
+			.setDesc("自动清理前保留的快照数量，超过此数量的旧版本会被移到回收站。 / Number of snapshots to keep before auto-cleanup. Older versions beyond this count will be moved to trash.")
 			.addText((text) =>
 				text
 					.setPlaceholder("5")
@@ -966,8 +972,8 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("启动时自动同步")
-			.setDesc("每次启动 Obsidian 时自动执行一次 Notion 导入。")
+			.setName("启动时自动同步 / Auto Sync on Startup")
+			.setDesc("每次启动 Obsidian 时自动执行一次 Notion 导入。 / Automatically execute a Notion import each time Obsidian starts.")
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.autoSyncOnStartup).onChange(async (value) => {
 					this.plugin.settings.autoSyncOnStartup = value;
@@ -976,12 +982,12 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("公式转换方式")
-			.setDesc("与 Notion (API) 导入器中的对应设置保持一致。")
+			.setName("公式转换方式 / Formula Strategy")
+			.setDesc("与 Notion (API) 导入器中的对应设置保持一致。 / Keep consistent with the corresponding setting in Notion (API) importer.")
 			.addDropdown((dropdown) =>
 				dropdown
-					.addOption("hybrid", "Obsidian 语法")
-					.addOption("static", "静态值")
+					.addOption("hybrid", "Obsidian 语法 / Obsidian Syntax")
+					.addOption("static", "静态值 / Static Value")
 					.setValue(this.plugin.settings.formulaStrategy)
 					.onChange(async (value) => {
 						this.plugin.settings.formulaStrategy = value as FormulaImportStrategy;
@@ -990,8 +996,8 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("下载外部附件")
-			.setDesc("导入时将外部 URL 下载为本地文件。")
+			.setName("下载外部附件 / Download External Attachments")
+			.setDesc("导入时将外部 URL 下载为本地文件。 / Download external URLs as local files during import.")
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.downloadExternalAttachments)
@@ -1002,8 +1008,8 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("单行换行")
-			.setDesc("在兼容的 Notion 块之间使用单个换行。")
+			.setName("单行换行 / Single Line Breaks")
+			.setDesc("在兼容的 Notion 块之间使用单个换行。 / Use single line breaks between compatible Notion blocks.")
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.singleLineBreaks).onChange(async (value) => {
 					this.plugin.settings.singleLineBreaks = value;
@@ -1012,8 +1018,8 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("封面字段名")
-			.setDesc("导入页面封面图片时写入的 Frontmatter 字段名。")
+			.setName("封面字段名 / Cover Property Name")
+			.setDesc("导入页面封面图片时写入的 Frontmatter 字段名。 / The Frontmatter field name used when importing page cover images.")
 			.addText((text) =>
 				text
 					.setPlaceholder(DEFAULT_SETTINGS.coverPropertyName)
@@ -1025,8 +1031,8 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("数据库字段名")
-			.setDesc("用于将导入页面关联到对应 `.base` 文件的 Frontmatter 字段名。")
+			.setName("数据库字段名 / Database Property Name")
+			.setDesc("用于将导入页面关联到对应 `.base` 文件的 Frontmatter 字段名。 / The Frontmatter field name used to associate imported pages with corresponding `.base` files.")
 			.addText((text) =>
 				text
 					.setPlaceholder(DEFAULT_SETTINGS.databasePropertyName)
@@ -1037,17 +1043,17 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		new Setting(containerEl).setName("上次同步").setHeading();
+		new Setting(containerEl).setName("上次同步 / Last Sync").setHeading();
 
 		containerEl.createEl("p", {
 			text: this.plugin.getLastSyncSummary(),
 		});
 
 		new Setting(containerEl)
-			.setName("立即同步")
-			.setDesc("立即创建一个新的版本目录，并导入当前可访问的全部 Notion 内容。")
+			.setName("立即同步 / Sync Now")
+			.setDesc("立即创建一个新的版本目录，并导入当前可访问的全部 Notion 内容。 / Create a new version directory and import all currently accessible Notion content.")
 			.addButton((button) =>
-				button.setButtonText("立即同步").setCta().onClick(async () => {
+				button.setButtonText("立即同步 / Sync").setCta().onClick(async () => {
 					button.setDisabled(true);
 					try {
 						await this.plugin.runNotionSync("manual");
@@ -1059,10 +1065,10 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("复制最近目录")
-			.setDesc("将最近一次 Notion 同步目录路径复制到剪贴板。")
+			.setName("复制最近目录 / Copy Recent Directory")
+			.setDesc("将最近一次 Notion 同步目录路径复制到剪贴板。 / Copy the most recent Notion sync directory path to clipboard.")
 			.addButton((button) =>
-				button.setButtonText("复制路径").onClick(async () => {
+				button.setButtonText("复制路径 / Copy").onClick(async () => {
 					button.setDisabled(true);
 					try {
 						await this.plugin.copyLastSyncFolderPath();
