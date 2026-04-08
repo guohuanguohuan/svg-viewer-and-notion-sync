@@ -26,7 +26,6 @@ const IMPORTER_FORMAT_ID = "notion-api";
 const LEGACY_PLUGIN_ID = "svg-code-renderer";
 const CURRENT_PLUGIN_ID = "svg-viewer-notion-sync";
 const DEFAULT_IMPORT_ROOT = "Notion imports";
-const MAX_SYNC_VERSIONS = 5;
 const SUPPORTED_SVG_CODE_BLOCKS = ["svg", "xml"] as const;
 const VERSION_FOLDER_PREFIX = "run-";
 const VERSION_FOLDER_PATTERN = /^run-\d{8}-\d{6}(?:-\d+)?$/;
@@ -44,6 +43,7 @@ interface SvgCodeRendererSettings {
 	formulaStrategy: FormulaImportStrategy;
 	coverPropertyName: string;
 	databasePropertyName: string;
+	maxSyncVersions: number;
 	lastSyncStatus: SyncStatus;
 	lastSyncMessage: string;
 	lastSyncFolder: string;
@@ -60,6 +60,7 @@ const DEFAULT_SETTINGS: SvgCodeRendererSettings = {
 	formulaStrategy: "hybrid",
 	coverPropertyName: "cover",
 	databasePropertyName: "base",
+	maxSyncVersions: 5,
 	lastSyncStatus: "idle",
 	lastSyncMessage: "尚未执行过 Notion 同步。",
 	lastSyncFolder: "",
@@ -696,7 +697,7 @@ export default class SvgCodeRendererPlugin extends Plugin {
 			.filter((child): child is TFolder => child instanceof TFolder && VERSION_FOLDER_PATTERN.test(child.name))
 			.sort((left, right) => right.name.localeCompare(left.name));
 
-		for (const folder of versionFolders.slice(MAX_SYNC_VERSIONS)) {
+		for (const folder of versionFolders.slice(this.settings.maxSyncVersions)) {
 			await this.app.vault.trash(folder, false);
 		}
 	}
@@ -909,16 +910,16 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		new Setting(containerEl).setName("SVG 预览").setHeading();
+		new Setting(containerEl).setName("svg相关说明").setHeading();
 
 		containerEl.createEl("p", {
-			text: '将 fenced `svg` 和 `xml` 代码块渲染为响应式内联预览，并支持透明背景显示。',
+			text: '如果notion页面中有内嵌svg代码，同步到Obsidian的svg代码外边会有三个点，导致显示的是代码不是图片，这个插件会将这几个点删除（记得将notion内嵌svg代码标语改成xml）',
 		});
 
 		new Setting(containerEl).setName("Notion 同步").setHeading();
 
 		containerEl.createEl("p", {
-			text: '依赖社区插件 “Importer”。每次同步都会创建一个新的时间戳子目录，并且只保留最近 5 个版本目录。',
+			text: '依赖社区插件 "Importer"。每次同步都会创建一个新的时间戳子目录，旧版本会自动清理。',
 		});
 
 		new Setting(containerEl)
@@ -944,6 +945,22 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.notionImportBaseFolder = value;
 						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("保留版本数")
+			.setDesc("自动清理前保留的快照数量，超过此数量的旧版本会被移到回收站。")
+			.addText((text) =>
+				text
+					.setPlaceholder("5")
+					.setValue(String(this.plugin.settings.maxSyncVersions))
+					.onChange(async (value) => {
+						const num = parseInt(value, 10);
+						if (!isNaN(num) && num >= 1) {
+							this.plugin.settings.maxSyncVersions = num;
+							await this.plugin.saveSettings();
+						}
 					}),
 			);
 
