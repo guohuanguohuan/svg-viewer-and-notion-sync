@@ -909,6 +909,7 @@ class SvgCodeRendererSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
+		containerEl.addClass("svg-code-renderer-setting");
 
 		new Setting(containerEl).setName("svg相关说明").setHeading();
 
