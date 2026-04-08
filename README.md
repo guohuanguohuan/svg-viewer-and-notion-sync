@@ -13,6 +13,24 @@ An Obsidian plugin that provides two core capabilities:
 
 ---
 
+### 🚀 Quick Start
+
+#### 1. SVG Preview
+Wrap your SVG code in a `svg` or `xml` code block:
+
+```svg
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="50" r="40" fill="#4f46e5" />
+</svg>
+```
+
+#### 2. Notion Sync
+1. Install [Importer](https://obsidian.md/plugins?id=obsidian-importer) plugin.
+2. Enter your **Notion API Token** in settings.
+3. Run command: `Sync Notion now`.
+
+---
+
 ### SVG Preview
 
 Supports the following fenced code blocks:
@@ -130,6 +148,24 @@ npm run build
 
 1. **SVG 预览** - 将 Markdown 中的 `svg` 和 `xml` 代码块渲染成响应式 SVG 预览。
 2. **Notion 同步** - 借助社区插件 [Importer](https://obsidian.md/plugins?id=obsidian-importer) 的 Notion API 导入器，将 Notion 内容导入到按时间戳分组的文件夹中。
+
+---
+
+### 🚀 快速开始
+
+#### 1. SVG 预览
+在笔记中使用 `svg` 或 `xml` 代码块：
+
+```svg
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="50" r="40" fill="#4f46e5" />
+</svg>
+```
+
+#### 2. Notion 同步
+1. 安装 [Importer](https://obsidian.md/plugins?id=obsidian-importer) 插件。
+2. 在设置中填写 **Notion API Token**。
+3. 执行命令：`立即同步 Notion`。
 
 ---
 
